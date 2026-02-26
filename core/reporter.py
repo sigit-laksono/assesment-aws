@@ -942,68 +942,71 @@ def generate_html_report(assessment_data, customer_name, account_id, region):
     return output_file
 
 def generate_pdf_report(html_file):
-    """Generate PDF report dari HTML file"""
+    """Generate PDF report dari HTML file menggunakan Playwright (Headless Chrome)"""
     print("\n📄 Generating PDF report...")
     
     try:
-        import pdfkit
-        import platform
-        
-        # Konfigurasi path wkhtmltopdf untuk Windows
-        config = None
-        if platform.system() == 'Windows':
-            possible_paths = [
-                r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe',
-                r'C:\Program Files (x86)\wkhtmltopdf\bin\wkhtmltopdf.exe',
-                os.path.join(os.environ.get('PROGRAMFILES', 'C:\\Program Files'), 'wkhtmltopdf', 'bin', 'wkhtmltopdf.exe'),
-                os.path.join(os.environ.get('PROGRAMFILES(X86)', 'C:\\Program Files (x86)'), 'wkhtmltopdf', 'bin', 'wkhtmltopdf.exe'),
-            ]
-            
-            wkhtmltopdf_path = None
-            for path in possible_paths:
-                if os.path.exists(path):
-                    wkhtmltopdf_path = path
-                    print(f"  ✓ Found wkhtmltopdf at: {path}")
-                    break
-            
-            if wkhtmltopdf_path:
-                config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf_path)
-        
-        # PDF options
-        options = {
-            'page-size': 'A4',
-            'orientation': 'Portrait',
-            'margin-top': '1.5cm',
-            'margin-right': '1cm',
-            'margin-bottom': '1.5cm',
-            'margin-left': '1cm',
-            'encoding': 'UTF-8',
-            'no-outline': None,
-            'enable-local-file-access': None,
-            'print-media-type': None,
-            'footer-center': 'Page [page] of [topage]',
-            'footer-font-size': '9',
-            'footer-spacing': '5',
-            'header-center': 'AWS Account Assessment Report',
-            'header-font-size': '9',
-            'header-spacing': '5'
-        }
+        import asyncio
+        from playwright.sync_api import sync_playwright
         
         # Generate PDF filename
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         pdf_file = f"output/assessment_report_{timestamp}.pdf"
         
-        # Convert HTML to PDF
-        if config:
-            pdfkit.from_file(html_file, pdf_file, options=options, configuration=config)
-        else:
-            pdfkit.from_file(html_file, pdf_file, options=options)
+        # Ambil path absolut file HTML (Playwright butuh absolute path dengan file:// prefix)
+        abs_html_path = f"file://{os.path.abspath(html_file)}"
         
+        with sync_playwright() as p:
+            # Gunakan chromium (engine chrome)
+            browser = p.chromium.launch()
+            page = browser.new_page()
+            
+            # Buka file HTML
+            page.goto(abs_html_path)
+            
+            # Berikan waktu sejenak agar JavaScript (Chart.js & Sidebar builder) selesai render
+            print("  - Waiting for content to render...")
+            page.wait_for_timeout(2000) 
+            
+            # Force show all rows and elements before generating PDF
+            print("  - Disabling pagination and filters for PDF...")
+            page.evaluate("""
+                // Show all rows
+                document.querySelectorAll('tr').forEach(tr => {
+                    tr.classList.remove('page-hidden');
+                    tr.classList.remove('filtered-hidden');
+                });
+                // Ensure all service sections are visible
+                document.querySelectorAll('.table-wrapper, .service-detail-card, h3').forEach(el => {
+                    el.classList.remove('filtered-hidden');
+                });
+            """)
+            
+            # Generate PDF
+            page.pdf(
+                path=pdf_file,
+                format="A4",
+                print_background=True,
+                margin={
+                    "top": "1cm",
+                    "right": "1cm",
+                    "bottom": "1cm",
+                    "left": "1cm"
+                },
+                display_header_footer=True,
+                header_template='<div style="font-size: 10px; width: 100%; text-align: center; color: #666;">AWS Account Assessment Report</div>',
+                footer_template='<div style="font-size: 10px; width: 100%; text-align: center; color: #666;">Page <span class="pageNumber"></span> / <span class="totalPages"></span></div>'
+            )
+            
+            browser.close()
+            
         print(f"✓ PDF report generated: {pdf_file}")
         return pdf_file
-        
+
     except ImportError:
-        print("⚠ pdfkit tidak terinstall. Install dengan: pip install pdfkit")
+        print("⚠ playwright tidak terinstall. Jalankan:")
+        print("  pip install playwright")
+        print("  playwright install chromium")
         return None
     except Exception as e:
         print(f"✗ Error generating PDF: {str(e)}")

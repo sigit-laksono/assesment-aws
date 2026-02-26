@@ -1,272 +1,114 @@
-# AWS Account Assessment Tool
+# AWS Account Assessment Tool (Modular v2.0)
 
-Tool untuk melakukan assessment komprehensif terhadap AWS account customer dan menghasilkan HTML report yang profesional.
+Tool profesional untuk melakukan assessment komprehensif terhadap akun AWS, menghasilkan laporan inventarisasi, analisis biaya (billing), dan ringkasan sumber daya dalam format HTML interaktif serta PDF.
 
-## 🚀 Quick Start untuk Team
+## 🚀 Apa yang Baru di v2.0 (Refactored)
 
-### Cara Paling Mudah: Gunakan Kiro Specs
+Kami telah melakukan refakturisasi besar-besaran untuk mengubah script monolitik menjadi arsitektur modular yang modern, bersih, dan mudah dikelola.
 
-1. **Buka Kiro IDE** dan load project ini
-2. **Buka Specs Panel** (di sidebar atau command palette: "Open Specs")
-3. **Pilih "AWS Account Assessment"** spec
-4. **Klik "Start Task"** dan ikuti guided workflow
-5. **Done!** Report akan otomatis di-generate
+### 🌟 Fitur Unggulan
+- **Modular Architecture**: Logika bisnis dipisah berdasarkan kategori (Compute, Storage, Network, dll). Menambah layanan AWS baru kini semudah menambah file di folder `collectors/`.
+- **Modern PDF Engine (Playwright)**: Menggantikan engine lama (`pdfkit`/`wkhtmltopdf`) dengan **Playwright (Headless Chromium)**. 
+  - ✅ Mendukung modern CSS (Flexbox, Grid, CSS Variables).
+  - ✅ Mendukung rendering JavaScript (Chart.js kini muncul di PDF).
+  - ✅ Tidak perlu instalasi manual biner OS yang rumit.
+- **Smart Reporting**: 
+  - **HTML**: Interaktif dengan paginasi, pencarian real-time, dan filter kategori.
+  - **PDF**: Otomatis menonaktifkan paginasi agar seluruh data (misal: ratusan EC2) muncul lengkap dalam satu dokumen tanpa tombol navigasi yang mengganggu.
+- **Enhanced Data Handling**: Menggunakan `DecimalEncoder` untuk menangani tipe data finansial dari AWS secara akurat.
+- **Improved Performance**: Penggunaan session AWS yang efisien dan pemisahan tahap *Inventory* dan *Reporting*.
 
-### Cara Alternatif: Prompting Langsung
+---
 
-Cukup chat dengan Kiro:
-- "Jalankan assessment untuk customer saya"
-- "Setup credentials untuk customer baru"
-- "Buka report terakhir"
-- "Berikan rekomendasi cost optimization"
+## 🏗️ Struktur Proyek (Modular)
 
-Kiro akan otomatis memandu Anda step-by-step!
-
-## Features
-
-- ✅ Analisis billing dan cost bulan lalu
-- ✅ Inventarisasi services yang digunakan (EC2, S3, RDS, Lambda, dll)
-- ✅ Security assessment
-- ✅ Cost optimization recommendations
-- ✅ HTML report yang profesional dan mudah dibaca
-- ✅ **PDF Export** - Generate report dalam format PDF
-- ✅ **Pagination** - Tabel dengan pagination untuk data yang banyak
-- ✅ **Summary Services** - Ringkasan semua services dengan jumlah resources
-- ✅ **Status Badges** - Visual indicator untuk status resources (Running/Stopped)
-- ✅ **Interactive Filters** - Filter by category, search, dan sort tables
-  - Filter by Service Category (Compute, Storage, Database, dll)
-  - Real-time Search untuk mencari resources spesifik
-  - Sortable Tables - Click header untuk sort ascending/descending
-  - Reset Filters button
-- ✅ Export data ke JSON
-- ✅ Auto-validation credentials dengan Hooks
-- ✅ Guided workflow dengan Specs
-- ✅ Integration dengan MCP AWS Documentation
-
-## Prerequisites
-
-- Python 3.8 atau lebih tinggi
-- AWS Account dengan appropriate permissions
-- Kiro IDE (recommended untuk best experience)
-- AWS CLI configured (optional)
-
-## Installation
-
-### Untuk Team Member (Recommended)
-
-1. **Clone repository ini**
-   ```bash
-   git clone <repository-url>
-   cd aws-assessment-tool
-   ```
-
-2. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-   
-   **Note untuk PDF Export:**
-   Tool ini menggunakan `pdfkit` dan `wkhtmltopdf` untuk generate PDF. Anda perlu install `wkhtmltopdf` secara terpisah:
-   
-   - **Windows**: 
-     1. Download installer dari [https://wkhtmltopdf.org/downloads.html](https://wkhtmltopdf.org/downloads.html)
-     2. Install dengan default settings
-     3. Restart terminal/command prompt
-   
-   - **macOS**: 
-     ```bash
-     brew install wkhtmltopdf
-     ```
-   
-   - **Linux (Ubuntu/Debian)**: 
-     ```bash
-     sudo apt-get install wkhtmltopdf
-     ```
-   
-   Jika `wkhtmltopdf` tidak terinstall, tool tetap akan berjalan dan generate HTML report (tanpa PDF).
-
-3. **Setup credentials customer**
-   ```bash
-   cp .env.example .env
-   ```
-   
-4. **Edit `.env` dengan credentials customer**
-   - Buka file `.env` di Kiro IDE
-   - Isi AWS credentials
-   - Save file (Kiro akan auto-validate credentials via Hook!)
-
-5. **Mulai assessment**
-   - Buka Specs panel di Kiro
-   - Pilih "AWS Account Assessment"
-   - Klik "Start Task"
-   
-   ATAU chat dengan Kiro:
-   ```
-   "Jalankan assessment untuk customer saya"
-   ```
-
-### Manual Installation (Tanpa Kiro)
-
-Jika tidak menggunakan Kiro IDE, ikuti langkah berikut:
-
-1. Clone repository ini
-2. Install dependencies:
-```bash
-pip install -r requirements.txt
+```text
+.
+├── aws_assessment.py      # Orchestrator (Main Entry Point)
+├── core/                  # Jantung aplikasi
+│   ├── engine.py          # Session management & Data storage
+│   └── reporter.py        # Logic pembuatan HTML & PDF (Playwright)
+├── collectors/            # Modul pengambil data per kategori
+│   ├── billing.py         # Cost Explorer analysis
+│   ├── compute.py         # EC2, Lambda, EKS, ALB
+│   ├── storage.py         # S3, EBS, EFS, AWS Backup
+│   ├── database.py        # RDS, DynamoDB, ElastiCache
+│   ├── network.py         # VPC, NAT Gateway, CloudFront, ELB
+│   ├── security.py        # KMS, WAF, Secrets Manager
+│   ├── integration.py     # SNS, MSK, Amazon MQ, Glue
+│   └── operations.py      # CloudTrail, AWS Config
+├── utils/                 # Helper functions
+│   ├── helpers.py         # JSON Encoders, Formatters
+│   └── config_loader.py   # Loader untuk services.md
+├── templates/             # UI Assets
+│   └── report_template.html
+├── output/                # Hasil assessment (JSON, HTML, PDF)
+├── requirements.txt
+└── .env                   # Konfigurasi credentials
 ```
 
-3. Copy `.env.example` ke `.env` dan isi dengan credentials AWS:
+---
+
+## 🛠️ Instalasi & Setup
+
+### 1. Persiapan Environment
+Pindahkan ke folder project dan buat virtual environment:
+```bash
+python3 -m venv venv
+source venv/bin/activate  # Linux/macOS
+```
+
+### 2. Install Dependencies
+Kami sekarang menggunakan **Playwright** untuk PDF yang lebih baik:
+```bash
+pip install -r requirements.txt
+playwright install chromium
+```
+
+### 3. Konfigurasi
+Copy `.env.example` ke `.env` dan isi data customer Anda:
 ```bash
 cp .env.example .env
 ```
+Isi variabel berikut: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `CUSTOMER_NAME`.
 
-4. Edit file `.env` dengan credentials customer:
-```
-AWS_ACCESS_KEY_ID=your_access_key_here
-AWS_SECRET_ACCESS_KEY=your_secret_key_here
-AWS_REGION=ap-southeast-1
-AWS_ACCOUNT_ID=123456789012
-CUSTOMER_NAME=Customer Name
-```
+---
 
-5. Jalankan assessment:
+## 📈 Cara Menjalankan
+
+Cukup jalankan orchestrator utama:
 ```bash
-python aws_assessment.py
+python3 aws_assessment.py
 ```
 
-## Usage
+**Alur Kerja Otomatis:**
+1. **Validation**: Mengecek koneksi ke AWS STS.
+2. **Collection**: Mengambil data billing bulan lalu dan inventarisasi 22+ layanan AWS.
+3. **Storage**: Menyimpan data mentah ke `output/*.json`.
+4. **Reporting**: Menghasilkan `output/*.html` dan `output/*.pdf`.
 
-### Dengan Kiro IDE (Recommended)
+---
 
-#### 1. Menggunakan Specs (Paling Mudah)
-1. Buka Specs panel
-2. Pilih "AWS Account Assessment"
-3. Klik "Start Task"
-4. Ikuti guided workflow
+## 📊 Detail Fitur Laporan
 
-#### 2. Menggunakan Chat/Prompting
-Cukup chat dengan Kiro menggunakan natural language:
+### 🔵 Interactive HTML Report
+- **Paginasi**: Tabel besar (seperti EC2/EBS) dibagi per 10 baris agar tetap ringan.
+- **Real-time Search**: Cari resource berdasarkan Nama, ID, atau Status secara instan.
+- **Category Filter**: Filter tampilan berdasarkan kategori (Compute, Storage, dll).
+- **Smooth Navigation**: Sidebar yang mengikuti posisi scroll Anda.
 
-**Setup Credentials Baru:**
-```
-"Setup credentials untuk customer PT. ABC"
-"Ganti credentials AWS"
-```
+### 🔴 Professional PDF Report
+- **Auto-Expansion**: Paginasi dimatikan secara otomatis saat pembuatan PDF agar SEMUA resource tercetak.
+- **Chart Rendering**: Grafik biaya dari Chart.js dirender sempurna.
+- **Print Optimized**: Menghilangkan tombol-tombol interaktif dan sidebar agar bersih saat diprint.
 
-**Jalankan Assessment:**
-```
-"Jalankan assessment untuk customer saya"
-"Lakukan full AWS assessment"
-```
+---
 
-**View Results:**
-```
-"Buka report terakhir"
-"Show me the latest assessment"
-```
+## 🔒 Security
+IAM Policy minimal yang dibutuhkan tetap sama dengan versi sebelumnya (membutuhkan akses `ce:GetCostAndUsage` dan `Describe*` pada layanan terkait).
 
-**Get Recommendations:**
-```
-"Berikan rekomendasi cost optimization"
-"Apa yang bisa dioptimasi dari EC2?"
-```
+---
 
-**Analyze Specific Service:**
-```
-"Analisis EC2 instances saja"
-"Check S3 buckets"
-"Lihat detail RDS databases"
-```
-
-### Manual (Tanpa Kiro)
-
-#### Menjalankan Assessment
-
-```bash
-python aws_assessment.py
-```
-
-### Output
-
-Assessment akan menghasilkan 2 jenis report:
-- `output/assessment_data_[timestamp].json` - Data mentah dalam format JSON
-- `output/assessment_report_[timestamp].html` - HTML report interaktif dengan pagination
-- `output/assessment_report_[timestamp].pdf` - PDF report untuk print/share (jika WeasyPrint terinstall)
-
-**Perbedaan HTML vs PDF:**
-- **HTML Report**: Interaktif dengan pagination, sidebar navigation, dan smooth scrolling
-- **PDF Report**: Print-friendly, semua data ditampilkan (tanpa pagination), cocok untuk dokumentasi dan sharing
-
-## AWS Permissions Required
-
-IAM user/role yang digunakan harus memiliki permissions minimal:
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "ce:GetCostAndUsage",
-        "ec2:Describe*",
-        "s3:ListAllMyBuckets",
-        "s3:GetBucketLocation",
-        "rds:Describe*",
-        "lambda:List*",
-        "lambda:Get*",
-        "iam:Get*",
-        "iam:List*",
-        "cloudwatch:Get*",
-        "cloudwatch:List*"
-      ],
-      "Resource": "*"
-    }
-  ]
-}
-```
-
-## Project Structure
-
-```
-.
-├── aws_assessment.py          # Main assessment script
-├── templates/
-│   └── report_template.html   # HTML report template
-├── output/                    # Generated reports (gitignored)
-├── .env                       # AWS credentials (gitignored)
-├── .env.example              # Example env file
-├── requirements.txt          # Python dependencies
-└── README.md                 # This file
-```
-
-## Workflow
-
-1. **Validasi Credentials** - Memastikan AWS credentials valid
-2. **Billing Analysis** - Mengambil data cost bulan lalu
-3. **Service Inventory** - Inventarisasi semua services yang digunakan
-4. **Security Assessment** - Analisis konfigurasi keamanan
-5. **Generate Recommendations** - Membuat rekomendasi optimasi
-6. **Create Report** - Generate HTML report profesional
-
-## Troubleshooting
-
-### Error: "Cost Explorer API not enabled"
-- Aktifkan Cost Explorer di AWS Console
-- Tunggu 24 jam setelah aktivasi untuk data tersedia
-
-### Error: "Access Denied"
-- Pastikan IAM user/role memiliki permissions yang cukup
-- Check IAM policies yang attached
-
-### Error: "Invalid credentials"
-- Verify AWS_ACCESS_KEY_ID dan AWS_SECRET_ACCESS_KEY di .env
-- Pastikan credentials masih aktif
-
-## Contributing
-
-Silakan buat issue atau pull request untuk improvements.
-
-## License
-
-MIT License
+## 📝 Troubleshooting
+- **Playwright Error**: Jika PDF gagal, pastikan Anda sudah menjalankan `playwright install chromium`.
+- **Billing Data Kosong**: AWS Cost Explorer memerlukan waktu 24 jam untuk aktif setelah di-enable di console.
