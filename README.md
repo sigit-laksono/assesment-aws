@@ -77,6 +77,12 @@ cp .env.example .env
 ```
 Isi variabel berikut: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `CUSTOMER_NAME`.
 
+#### 📝 Konfigurasi Layanan (services.md)
+Anda dapat mengatur layanan AWS mana saja yang ingin di-scan melalui file `services.md`.
+- **Checklist**: Cukup ganti `[ ]` menjadi `[x]` pada tabel layanan untuk mengaktifkan scanner-nya.
+- **Dinamis**: Engine akan secara otomatis hanya memproses layanan yang diberi tanda centang `[x]`.
+- **Kategori**: Layanan dikelompokkan berdasarkan kategori standar AWS (Compute, Storage, Database, dll).
+
 ---
 
 ## 📈 Cara Menjalankan
