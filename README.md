@@ -57,10 +57,24 @@ Kami telah melakukan refakturisasi besar-besaran untuk mengubah script monolitik
 ## 🛠️ Instalasi & Setup
 
 ### 1. Persiapan Environment
-Pindahkan ke folder project dan buat virtual environment:
+Buka terminal/command prompt di dalam folder project dan buat virtual environment:
+
+**Linux / macOS:**
 ```bash
 python3 -m venv venv
-source venv/bin/activate  # Linux/macOS
+source venv/bin/activate
+```
+
+**Windows (Command Prompt):**
+```cmd
+python -m venv venv
+venv\Scripts\activate
+```
+
+**Windows (PowerShell):**
+```powershell
+python -m venv venv
+.\venv\Scripts\Activate.ps1
 ```
 
 ### 2. Install Dependencies
