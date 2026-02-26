@@ -886,6 +886,26 @@ def generate_html_report(assessment_data, customer_name, account_id, region):
         if monthly_costs:
             total_monthly_cost = monthly_costs[-1]['total']
     
+    # Load static assets (CSS & JS)
+    styles_path = 'templates/report_styles.css'
+    scripts_path = 'templates/report_scripts.js'
+    
+    # Fallback paths
+    if not os.path.exists(styles_path):
+        styles_path = os.path.join(os.path.dirname(__file__), '..', 'templates', 'report_styles.css')
+    if not os.path.exists(scripts_path):
+        scripts_path = os.path.join(os.path.dirname(__file__), '..', 'templates', 'report_scripts.js')
+        
+    report_styles = ""
+    if os.path.exists(styles_path):
+        with open(styles_path, 'r', encoding='utf-8') as f:
+            report_styles = f.read()
+            
+    report_scripts = ""
+    if os.path.exists(scripts_path):
+        with open(scripts_path, 'r', encoding='utf-8') as f:
+            report_scripts = f.read()
+
     # Replace basic placeholders
     replacements = {
         '{{CUSTOMER_NAME}}': customer_name,
@@ -895,7 +915,9 @@ def generate_html_report(assessment_data, customer_name, account_id, region):
         '{{SERVICES_COUNT}}': str(total_services),
         '{{RESOURCES_COUNT}}': str(total_resources),
         '{{TOTAL_MONTHLY_COST}}': f'${total_monthly_cost:,.2f}' if total_monthly_cost > 0 else '$0.00',
-        '{{GENERATION_TIMESTAMP}}': datetime.now().strftime('%d %B %Y, %H:%M:%S')
+        '{{GENERATION_TIMESTAMP}}': datetime.now().strftime('%d %B %Y, %H:%M:%S'),
+        '/* __REPORT_STYLES__ */': report_styles,
+        '/* __REPORT_SCRIPTS__ */': report_scripts
     }
     
     for placeholder, value in replacements.items():

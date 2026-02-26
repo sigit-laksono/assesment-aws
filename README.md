@@ -12,7 +12,10 @@ Kami telah melakukan refakturisasi besar-besaran untuk mengubah script monolitik
   - ✅ Mendukung modern CSS (Flexbox, Grid, CSS Variables).
   - ✅ Mendukung rendering JavaScript (Chart.js kini muncul di PDF).
   - ✅ Tidak perlu instalasi manual biner OS yang rumit.
+- **Improved UI/UX**: Interface dashboard baru dengan Sidebar dinamis, Scrollspy, dan mode cetak yang dioptimalkan.
 - **Smart Reporting**: 
+  - **Clean Asset Separation**: CSS dan JavaScript kini dipisah dari file HTML utama untuk memudahkan modifikasi desain dan fitur.
+  - **Auto-Inlining (Standalone HTML)**: Meskipun file dipisah saat development, script akan menggabungkannya kembali secara otomatis saat generate report. Hasilnya tetap satu file HTML mandiri yang mudah dibagikan tanpa folder assets tambahan.
   - **HTML**: Interaktif dengan paginasi, pencarian real-time, dan filter kategori.
   - **PDF**: Otomatis menonaktifkan paginasi agar seluruh data (misal: ratusan EC2) muncul lengkap dalam satu dokumen tanpa tombol navigasi yang mengganggu.
 - **Enhanced Data Handling**: Menggunakan `DecimalEncoder` untuk menangani tipe data finansial dari AWS secara akurat.
@@ -41,7 +44,9 @@ Kami telah melakukan refakturisasi besar-besaran untuk mengubah script monolitik
 │   ├── helpers.py         # JSON Encoders, Formatters
 │   └── config_loader.py   # Loader untuk services.md
 ├── templates/             # UI Assets
-│   └── report_template.html
+│   ├── report_template.html   # Struktur HTML utama
+│   ├── report_styles.css      # Desain Dashboard (Modern CSS Variables)
+│   └── report_scripts.js      # Logika Filter, Search, Paginasi
 ├── output/                # Hasil assessment (JSON, HTML, PDF)
 ├── requirements.txt
 └── .env                   # Konfigurasi credentials
