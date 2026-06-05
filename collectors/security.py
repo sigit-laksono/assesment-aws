@@ -110,3 +110,54 @@ def inventory_secretsmanager(session, assessment_data):
     except Exception as e:
         print(f"✗ Error inventorying Secrets Manager: {str(e)}")
         return False
+
+def inventory_iam(session, assessment_data):
+    """Inventory IAM (summary-level only, no PII)"""
+    print("\n👤 Inventarisasi IAM (summary-level)...")
+    try:
+        iam = session.client('iam')
+
+        summary = iam.get_account_summary().get('SummaryMap', {})
+
+        # AccountMFAEnabled = 1 jika root user punya MFA aktif
+        root_mfa_enabled = bool(summary.get('AccountMFAEnabled', 0))
+
+        # Cek password policy (best practice security)
+        try:
+            policy = iam.get_account_password_policy().get('PasswordPolicy', {})
+            password_policy_set = True
+        except iam.exceptions.NoSuchEntityException:
+            policy = {}
+            password_policy_set = False
+        except Exception:
+            policy = {}
+            password_policy_set = False
+
+        assessment_data['services']['iam'] = {
+            'count': summary.get('Users', 0),
+            'users_count':              summary.get('Users', 0),
+            'groups_count':             summary.get('Groups', 0),
+            'roles_count':              summary.get('Roles', 0),
+            'policies_count':           summary.get('Policies', 0),
+            'mfa_devices_in_use':       summary.get('MFADevicesInUse', 0),
+            'account_access_keys':      summary.get('AccountAccessKeysPresent', 0),
+            'root_mfa_enabled':         root_mfa_enabled,
+            'password_policy_set':      password_policy_set,
+            'min_password_length':      policy.get('MinimumPasswordLength', 0),
+            'require_symbols':          policy.get('RequireSymbols', False),
+            'require_numbers':          policy.get('RequireNumbers', False),
+            'require_uppercase':        policy.get('RequireUppercaseCharacters', False),
+            'require_lowercase':        policy.get('RequireLowercaseCharacters', False),
+            'password_reuse_prevention': policy.get('PasswordReusePrevention', 0),
+            'max_password_age':         policy.get('MaxPasswordAge', 0),
+        }
+
+        print(f"✓ IAM summary: {summary.get('Users', 0)} users, "
+              f"{summary.get('Groups', 0)} groups, "
+              f"{summary.get('Roles', 0)} roles")
+        print(f"  Root MFA: {'✓ Enabled' if root_mfa_enabled else '✗ DISABLED (risk!)'}")
+        print(f"  Password policy: {'✓ Set' if password_policy_set else '✗ Not set'}")
+        return True
+    except Exception as e:
+        print(f"✗ Error inventorying IAM: {str(e)}")
+        return False

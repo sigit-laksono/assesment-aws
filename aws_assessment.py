@@ -21,7 +21,7 @@ from collectors.compute import inventory_ec2, inventory_lambda, inventory_eks, i
 from collectors.storage import inventory_s3, inventory_ebs, inventory_efs, inventory_backup
 from collectors.database import inventory_rds, inventory_dynamodb, inventory_elasticache
 from collectors.network import inventory_vpc, inventory_nat_gateway, inventory_cloudfront, inventory_route53, inventory_nlb
-from collectors.security import inventory_kms, inventory_waf, inventory_secretsmanager
+from collectors.security import inventory_kms, inventory_waf, inventory_secretsmanager, inventory_iam
 from collectors.integration import inventory_sns, inventory_msk, inventory_amazonmq, inventory_glue, inventory_cloudwatch
 from collectors.operations import inventory_cloudtrail, inventory_config
 
@@ -57,6 +57,7 @@ class AWSAssessment(AssessmentEngine):
             'elasticache': inventory_elasticache,
             'vpc': inventory_vpc,
             'nat_gateway': inventory_nat_gateway,
+            'iam': inventory_iam,
             'kms': inventory_kms,
             'waf': inventory_waf,
             'cloudwatch': inventory_cloudwatch,

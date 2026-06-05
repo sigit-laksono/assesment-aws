@@ -376,6 +376,47 @@ def _generate_services_inventory(assessment_data):
                 '''
             services_html += '</tbody></table></div>'
     
+    # IAM Section
+    if 'iam' in assessment_data['services']:
+        iam_data = assessment_data['services']['iam']
+        root_mfa = iam_data.get('root_mfa_enabled', False)
+        pwd_policy = iam_data.get('password_policy_set', False)
+
+        root_mfa_badge = (
+            '<span style="color: #16a34a;">✓ Enabled</span>' if root_mfa
+            else '<span style="color: #dc2626; font-weight: 600;">✗ DISABLED</span>'
+        )
+        pwd_policy_badge = (
+            '<span style="color: #16a34a;">✓ Set</span>' if pwd_policy
+            else '<span style="color: #dc2626; font-weight: 600;">✗ Not Set</span>'
+        )
+
+        services_html += f'''
+        <h3>IAM - Identity and Access Management</h3>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Users</td><td>{iam_data.get('users_count', 0)}</td></tr>
+                    <tr><td>Groups</td><td>{iam_data.get('groups_count', 0)}</td></tr>
+                    <tr><td>Roles</td><td>{iam_data.get('roles_count', 0)}</td></tr>
+                    <tr><td>Customer Managed Policies</td><td>{iam_data.get('policies_count', 0)}</td></tr>
+                    <tr><td>MFA Devices In Use</td><td>{iam_data.get('mfa_devices_in_use', 0)}</td></tr>
+                    <tr><td>Root MFA</td><td>{root_mfa_badge}</td></tr>
+                    <tr><td>Password Policy</td><td>{pwd_policy_badge}</td></tr>
+                    <tr><td>Min Password Length</td><td>{iam_data.get('min_password_length', 0) or 'N/A'}</td></tr>
+                    <tr><td>Password Reuse Prevention</td><td>{iam_data.get('password_reuse_prevention', 0) or 'N/A'}</td></tr>
+                    <tr><td>Max Password Age (days)</td><td>{iam_data.get('max_password_age', 0) or 'N/A'}</td></tr>
+                </tbody>
+            </table>
+        </div>
+        '''
+
     # KMS Section
     if 'kms' in assessment_data['services']:
         kms_data = assessment_data['services']['kms']
@@ -882,6 +923,7 @@ def _generate_summary_services(assessment_data):
         'cloudwatch': 'CloudWatch',
         'cloudtrail': 'CloudTrail',
         'kms': 'KMS',
+        'iam': 'IAM (Identity & Access Management)',
         'secretsmanager': 'Secrets Manager',
         'efs': 'EFS',
         'backup': 'AWS Backup',

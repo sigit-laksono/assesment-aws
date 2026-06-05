@@ -53,7 +53,7 @@ Tandai layanan yang ingin di-assessment dengan mengganti `[ ]` menjadi `[x]`
 
 | No  | Services                             | Checklist |
 | -----| --------------------------------------| -----------|
-| 24  | IAM (Identity and Access Management) | [ ]       |
+| 24  | IAM (Identity and Access Management) | [x]       |
 | 25  | KMS (Key Management Service)         | [x]       |
 | 26  | Secrets Manager                      | [x]       |
 | 27  | WAF (Web Application Firewall)       | [x]       |
