@@ -133,8 +133,7 @@ def _print_service_table(flat_services: list, selected_nos: list):
             except StopIteration:
                 next_cat_no = 9999
 
-        mark = "x" if no in selected_nos else " "
-        print(f"  [{mark}] {no:>2}.  {display_name}")
+        print(f"  {no:>2}.  {display_name}")
 
 
 def run_interactive_setup(services_md_path: str = 'services.md') -> dict | None:
