@@ -29,25 +29,30 @@ def inventory_ebs(session, assessment_data):
     print("\n💾 Inventarisasi EBS volumes...")
     try:
         ec2 = session.client('ec2')
-        
-        volumes = ec2.describe_volumes()
+        paginator = ec2.get_paginator('describe_volumes')
+
         volume_list = []
-        
-        for volume in volumes.get('Volumes', []):
-            volume_list.append({
-                'id': volume['VolumeId'],
-                'size': volume['Size'],
-                'type': volume['VolumeType'],
-                'state': volume['State'],
-                'iops': volume.get('Iops', 'N/A'),
-                'encrypted': volume.get('Encrypted', False)
-            })
-        
+        for page in paginator.paginate():
+            for volume in page.get('Volumes', []):
+                # Ambil instance yang attach (untuk cost optimization rule)
+                attachments = volume.get('Attachments', [])
+                attached_instance = attachments[0]['InstanceId'] if attachments else None
+
+                volume_list.append({
+                    'id':                volume['VolumeId'],
+                    'size':              volume['Size'],
+                    'type':              volume['VolumeType'],
+                    'state':             volume['State'],
+                    'iops':              volume.get('Iops', 'N/A'),
+                    'encrypted':         volume.get('Encrypted', False),
+                    'attached_instance': attached_instance,
+                })
+
         assessment_data['services']['ebs'] = {
-            'count': len(volume_list),
-            'volumes': volume_list
+            'count':   len(volume_list),
+            'volumes': volume_list,
         }
-        
+
         print(f"✓ Found {len(volume_list)} EBS volumes")
         return True
     except Exception as e:

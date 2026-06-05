@@ -48,8 +48,9 @@ class AssessmentEngine:
             'account_id':      self.account_id,
             'region':          self.region,
             'assessment_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'billing_data':    {},
-            'services':        {},
+            'billing_data':       {},
+            'services':           {},
+            'cost_optimization':  {},
         }
 
         print(f"✓ Customer : {self.customer_name}")

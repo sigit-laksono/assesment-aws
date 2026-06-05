@@ -15,11 +15,10 @@ build/
 dist/
 *.egg-info/
 
-# Output files
+# Output files (hanya folder output, bukan templates)
 output/
 *.json
 *.csv
-*.html
 
 # IDE
 .kiro/

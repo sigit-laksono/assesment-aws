@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Account Assessment Report - {{CUSTOMER_NAME}}</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        /* __REPORT_STYLES__ */
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>AWS Assessment</h2>
+            </div>
+            <nav class="nav-menu">
+                <a href="#executive-summary" class="nav-item active">Executive Summary</a>
+                <a href="#cost-optimization" class="nav-item">Cost Optimization</a>
+                <a href="#services-inventory" class="nav-item">Services Inventory</a>
+                <div id="dynamic-sub-nav" class="sub-nav"></div>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h1>Assessment Report</h1>
+                <div class="header-info">
+                    <div class="header-info-item">
+                        <label>Customer Name</label>
+                        <value>{{CUSTOMER_NAME}}</value>
+                    </div>
+                    <div class="header-info-item">
+                        <label>AWS Account ID</label>
+                        <value>{{ACCOUNT_ID}}</value>
+                    </div>
+                    <div class="header-info-item">
+                        <label>Assessment Date</label>
+                        <value>{{ASSESSMENT_DATE}}</value>
+                    </div>
+                    <div class="header-info-item">
+                        <label>Region</label>
+                        <value>{{AWS_REGION}}</value>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content">
+                <!-- Executive Summary -->
+                <div id="executive-summary" class="section">
+                    <h2>Executive Summary</h2>
+                    <div class="summary-cards">
+                        <div class="summary-card">
+                            <div class="label">Total Monthly Cost</div>
+                            <div class="value">{{TOTAL_MONTHLY_COST}}</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="label">Services Active</div>
+                            <div class="value">{{SERVICES_COUNT}}</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="label">Resources Total</div>
+                            <div class="value">{{RESOURCES_COUNT}}</div>
+                        </div>
+                    </div>
+
+                    <h3>Top Cost Drivers</h3>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Service</th>
+                                    <th>Monthly Cost</th>
+                                    <th>Share %</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{TOP_COST_DRIVERS}}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3>Summary Services</h3>
+                    <div class="summary-services-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>SERVICE</th>
+                                    <th>RESOURCES</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{SUMMARY_SERVICES}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Cost Optimization -->
+                <div id="cost-optimization" class="section">
+                    <h2>💰 Cost Optimization</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 16px;">
+                        Resource yang tidak digunakan dan berpotensi menghemat biaya.
+                        Estimasi berdasarkan harga on-demand — tinjau sebelum melakukan cleanup.
+                    </p>
+                    {{COST_OPTIMIZATION}}
+                </div>
+
+                <!-- Services Inventory -->
+                <div id="services-inventory" class="section">
+                    <h2>Services Inventory</h2>
+
+                    <!-- Filter Controls -->
+                    <div class="filter-controls">
+                        <div class="filter-group">
+                            <label for="category-filter">Filter by Category</label>
+                            <select id="category-filter">
+                                <option value="all">All Services</option>
+                                <option value="compute">Compute Services</option>
+                                <option value="storage">Storage Services</option>
+                                <option value="database">Database Services</option>
+                                <option value="networking">Networking & Content Delivery</option>
+                                <option value="security">Security, Identity & Compliance</option>
+                                <option value="management">Management & Governance</option>
+                                <option value="integration">Application Integration</option>
+                                <option value="analytics">Analytics</option>
+                                <option value="ml">Machine Learning</option>
+                                <option value="devtools">Developer Tools</option>
+                                <option value="migration">Migration & Transfer</option>
+                                <option value="cost">Cost Management</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="search-filter">Search Resources</label>
+                            <input type="search" id="search-filter" placeholder="Search by name, ID, or status...">
+                        </div>
+                        <button class="btn-reset" onclick="resetFilters()">Reset Filters</button>
+                    </div>
+
+                    <div class="no-results" id="no-results">
+                        No resources found matching your filters.
+                    </div>
+
+                    {{SERVICES_INVENTORY_CONTENT}}
+                </div>
+            </div>
+
+            <div class="footer">
+                <strong>AWS Account Assessment Report</strong>
+                <p>Generated by AWS Assessment Agent — {{GENERATION_TIMESTAMP}}</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* __REPORT_SCRIPTS__ */
+    </script>
+</body>
+
+</html>
