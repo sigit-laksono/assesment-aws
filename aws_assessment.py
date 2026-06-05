@@ -16,7 +16,6 @@ from core.reporter import generate_html_report, generate_pdf_report
 from collectors.cost_optimization import run_cost_optimization
 
 # Import Utils
-from utils.config_loader import load_services_config
 from utils.interactive import run_interactive_setup
 
 # Import Collectors
@@ -80,13 +79,10 @@ class AWSAssessment(AssessmentEngine):
             'nlb': inventory_nlb,
         }
 
-    def run_assessment(self, selected_services: list | None = None):
+    def run_assessment(self, selected_services: list):
         """
         Jalankan alur kerja assessment secara lengkap.
-
-        selected_services: list service codes dari interactive setup
-                           (mis. ['ec2', 's3', 'rds']).
-                           Kalau None, fallback ke services.md.
+        selected_services: list service codes dari interactive setup (mis. ['ec2', 's3', 'rds']).
         """
         print("\n" + "="*60)
         print("🚀 AWS Account Assessment — dimulai")
@@ -100,22 +96,17 @@ class AWSAssessment(AssessmentEngine):
         # 2. Ambil data billing (Cost Explorer)
         get_billing_data(self.session, self.assessment_data)
 
-        # 3. Tentukan services yang akan di-scan
-        if selected_services is not None:
-            # Dari interactive setup: bangun services_config on-the-fly
-            services_config = {
-                code: {'enabled': True, 'display_name': code.upper()}
-                for code in selected_services
-                if code in self.inventory_map
-            }
-        else:
-            # Fallback: baca dari services.md (mode non-interaktif)
-            services_config = load_services_config('services.md')
+        # 3. Bangun daftar services dari pilihan interaktif
+        services_config = {
+            code: {'enabled': True, 'display_name': code.upper()}
+            for code in (selected_services or [])
+            if code in self.inventory_map
+        }
 
         # 4. Inventory services
         enabled = [
             (name, cfg) for name, cfg in services_config.items()
-            if cfg.get('enabled', False) and name in self.inventory_map
+            if cfg.get('enabled', False)
         ]
         total = len(enabled)
 
@@ -171,34 +162,26 @@ class AWSAssessment(AssessmentEngine):
 def main():
     """
     Main Entry Point.
-
-    Alur:
-      1. Jalankan interactive setup wizard (questionary)
-         → kalau questionary tidak ada / user cancel → fallback ke .env + services.md
-      2. Inisialisasi AWSAssessment dengan hasil setup
-      3. run_assessment() + generate_reports()
+    Pemilihan services wajib lewat interactive terminal — tidak ada fallback ke file.
     """
     try:
         # ── Interactive Setup ─────────────────────────────────────────────────
         setup = run_interactive_setup()
 
-        if setup is not None:
-            # Mode interaktif: pakai hasil dari wizard
-            assessment = AWSAssessment(
-                customer_name=setup['customer_name'],
-                region=setup['region'],
-                access_key=setup['access_key'],
-                secret_key=setup['secret_key'],
-            )
-            selected_services = setup['selected_services']
-        else:
-            # Mode fallback: pakai .env + services.md (kompatibel dengan cara lama)
-            print("ℹ  Mode non-interaktif: menggunakan .env + services.md\n")
-            assessment = AWSAssessment()
-            selected_services = None   # run_assessment() akan baca services.md
+        if setup is None:
+            # User cancel (Ctrl+C) atau error di wizard
+            print("\n  Assessment dibatalkan.\n")
+            sys.exit(0)
+
+        assessment = AWSAssessment(
+            customer_name=setup['customer_name'],
+            region=setup['region'],
+            access_key=setup['access_key'],
+            secret_key=setup['secret_key'],
+        )
 
         # ── Assessment ────────────────────────────────────────────────────────
-        if assessment.run_assessment(selected_services=selected_services):
+        if assessment.run_assessment(selected_services=setup['selected_services']):
             html_report, pdf_report = assessment.generate_reports()
 
             print("\n✅ Assessment selesai!")

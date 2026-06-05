@@ -84,9 +84,10 @@ def _confirm(label: str, default: bool = True) -> bool:
     return answer in ("y", "yes")
 
 
-def _build_service_table(md_defaults: dict) -> tuple[list, list]:
+def _build_service_table() -> tuple[list, list]:
     """
     Bangun flat list semua service beserta default check-state.
+
     Return: (flat_services, default_indices)
       flat_services : list of (no, display_name, code)
       default_indices: list nomor (1-based) yang default dipilih
@@ -96,14 +97,9 @@ def _build_service_table(md_defaults: dict) -> tuple[list, list]:
     no = 1
 
     for _, services in SERVICE_GROUPS:
-        for display_name, code, hardcoded_default in services:
-            # Prioritaskan state dari services.md kalau ada
-            if code in md_defaults:
-                checked = md_defaults[code].get('enabled', hardcoded_default)
-            else:
-                checked = hardcoded_default
+        for display_name, code, checked_by_default in services:
             flat.append((no, display_name, code))
-            if checked:
+            if checked_by_default:
                 defaults.append(no)
             no += 1
 
@@ -136,7 +132,7 @@ def _print_service_table(flat_services: list, selected_nos: list):
         print(f"  {no:>2}.  {display_name}")
 
 
-def run_interactive_setup(services_md_path: str = 'services.md') -> dict | None:
+def run_interactive_setup() -> dict | None:
     """
     Jalankan interactive setup wizard di terminal.
 
@@ -157,17 +153,7 @@ def run_interactive_setup(services_md_path: str = 'services.md') -> dict | None:
     env_region        = os.getenv('AWS_REGION', 'ap-southeast-1')
     env_customer_name = os.getenv('CUSTOMER_NAME', '')
 
-    # Muat defaults dari services.md
-    try:
-        from utils.config_loader import load_services_config
-        import io, contextlib
-        buf = io.StringIO()
-        with contextlib.redirect_stdout(buf):
-            md_defaults = load_services_config(services_md_path)
-    except Exception:
-        md_defaults = {}
-
-    flat_services, default_nos = _build_service_table(md_defaults)
+    flat_services, default_nos = _build_service_table()
 
     print("\n" + "=" * 58)
     print("   AWS Account Assessment Tool  v2.0")
