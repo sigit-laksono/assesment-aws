@@ -89,6 +89,44 @@ def inventory_eks(session, assessment_data):
         print(f"✗ Error inventorying EKS: {str(e)}")
         return False
 
+def inventory_ecr(session, assessment_data):
+    """Inventory ECR repositories"""
+    print("\n📦 Inventarisasi ECR repositories...")
+    try:
+        ecr = session.client('ecr')
+        
+        repositories = ecr.describe_repositories()
+        repo_list = []
+        
+        for repo in repositories.get('repositories', []):
+            # Get image count
+            image_count = 0
+            try:
+                images = ecr.list_images(repositoryName=repo['repositoryName'])
+                image_count = len(images.get('imageIds', []))
+            except Exception:
+                pass
+            
+            repo_list.append({
+                'name': repo['repositoryName'],
+                'uri': repo['repositoryUri'],
+                'created_at': repo['createdAt'].strftime('%Y-%m-%d %H:%M:%S'),
+                'image_tag_mutability': repo.get('imageTagMutability', 'N/A'),
+                'scan_on_push': repo.get('imageScanningConfiguration', {}).get('scanOnPush', False),
+                'image_count': image_count
+            })
+        
+        assessment_data['services']['ecr'] = {
+            'count': len(repo_list),
+            'repositories': repo_list
+        }
+        
+        print(f"✓ Found {len(repo_list)} ECR repositories")
+        return True
+    except Exception as e:
+        print(f"✗ Error inventorying ECR: {str(e)}")
+        return False
+
 def inventory_alb(session, assessment_data):
     """Inventory Application Load Balancers (ALB)"""
     print("\n⚖️  Inventarisasi Application Load Balancers...")

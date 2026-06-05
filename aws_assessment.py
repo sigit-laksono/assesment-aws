@@ -17,10 +17,10 @@ from utils.config_loader import load_services_config
 
 # Import Collectors
 from collectors.billing import get_billing_data
-from collectors.compute import inventory_ec2, inventory_lambda, inventory_eks, inventory_alb
+from collectors.compute import inventory_ec2, inventory_lambda, inventory_eks, inventory_alb, inventory_ecr
 from collectors.storage import inventory_s3, inventory_ebs, inventory_efs, inventory_backup
 from collectors.database import inventory_rds, inventory_dynamodb, inventory_elasticache
-from collectors.network import inventory_vpc, inventory_nat_gateway, inventory_cloudfront, inventory_elb
+from collectors.network import inventory_vpc, inventory_nat_gateway, inventory_cloudfront, inventory_elb, inventory_route53, inventory_nlb
 from collectors.security import inventory_kms, inventory_waf, inventory_secretsmanager
 from collectors.integration import inventory_sns, inventory_msk, inventory_amazonmq, inventory_glue, inventory_cloudwatch
 from collectors.operations import inventory_cloudtrail, inventory_config
@@ -60,6 +60,9 @@ class AWSAssessment(AssessmentEngine):
             'msk': inventory_msk,
             'amazonmq': inventory_amazonmq,
             'glue': inventory_glue,
+            'ecr': inventory_ecr,
+            'route53': inventory_route53,
+            'nlb': inventory_nlb,
         }
 
     def run_assessment(self):

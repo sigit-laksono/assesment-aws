@@ -792,6 +792,101 @@ def _generate_services_inventory(assessment_data):
                 '''
             services_html += '</tbody></table></div>'
     
+    # ECR Section
+    if 'ecr' in assessment_data['services']:
+        ecr_data = assessment_data['services']['ecr']
+        if ecr_data.get('count', 0) > 0:
+            services_html += f'''
+            <h3>ECR - Elastic Container Registry</h3>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Repository Name</th>
+                            <th>URI</th>
+                            <th>Images</th>
+                            <th>Tag Mutability</th>
+                            <th>Scan on Push</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            '''
+            for repo in ecr_data['repositories']:
+                services_html += f'''
+                <tr>
+                    <td>{repo['name']}</td>
+                    <td>{repo['uri']}</td>
+                    <td>{repo['image_count']}</td>
+                    <td>{repo['image_tag_mutability']}</td>
+                    <td>{'Yes' if repo['scan_on_push'] else 'No'}</td>
+                    <td>{repo['created_at']}</td>
+                </tr>
+                '''
+            services_html += '</tbody></table></div>'
+
+    # Route 53 Section
+    if 'route53' in assessment_data['services']:
+        r53_data = assessment_data['services']['route53']
+        if r53_data.get('count', 0) > 0:
+            services_html += f'''
+            <h3>Route 53 - DNS Service</h3>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Zone ID</th>
+                            <th>Domain Name</th>
+                            <th>Type</th>
+                            <th>Record Count</th>
+                            <th>Comment</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            '''
+            for zone in r53_data['hosted_zones']:
+                services_html += f'''
+                <tr>
+                    <td>{zone['id']}</td>
+                    <td>{zone['name']}</td>
+                    <td>{zone['type']}</td>
+                    <td>{zone['record_count']}</td>
+                    <td>{zone['comment']}</td>
+                </tr>
+                '''
+            services_html += '</tbody></table></div>'
+
+    # NLB Section
+    if 'nlb' in assessment_data['services']:
+        nlb_data = assessment_data['services']['nlb']
+        if nlb_data.get('count', 0) > 0:
+            services_html += f'''
+            <h3>NLB - Network Load Balancer</h3>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>DNS Name</th>
+                            <th>Scheme</th>
+                            <th>State</th>
+                            <th>VPC ID</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            '''
+            for lb in nlb_data['load_balancers']:
+                services_html += f'''
+                <tr>
+                    <td>{lb['name']}</td>
+                    <td>{lb['dns']}</td>
+                    <td>{lb['scheme']}</td>
+                    <td>{lb['state']}</td>
+                    <td>{lb['vpc_id']}</td>
+                </tr>
+                '''
+            services_html += '</tbody></table></div>'
+
     if not services_html:
         services_html = '<p style="color: var(--text-muted); text-align: center; padding: 40px;">Tidak ada services yang ditemukan.</p>'
     
@@ -827,7 +922,10 @@ def _generate_summary_services(assessment_data):
         'sns': 'SNS',
         'msk': 'MSK',
         'amazonmq': 'Amazon MQ',
-        'glue': 'AWS Glue'
+        'glue': 'AWS Glue',
+        'ecr': 'ECR (Container Registry)',
+        'route53': 'Route 53',
+        'nlb': 'NLB (Network Load Balancer)'
     }
     
     # Collect all services with their counts

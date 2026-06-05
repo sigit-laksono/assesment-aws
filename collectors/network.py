@@ -93,6 +93,67 @@ def inventory_cloudfront(session, assessment_data):
         print(f"✗ Error inventorying CloudFront: {str(e)}")
         return False
 
+def inventory_route53(session, assessment_data):
+    """Inventory Route 53 hosted zones"""
+    print("\n🌍 Inventarisasi Route 53 hosted zones...")
+    try:
+        route53 = session.client('route53')
+        
+        hosted_zones = route53.list_hosted_zones()
+        zone_list = []
+        
+        for zone in hosted_zones.get('HostedZones', []):
+            zone_list.append({
+                'id': zone['Id'].split('/')[-1],
+                'name': zone['Name'],
+                'type': 'Private' if zone.get('Config', {}).get('PrivateZone', False) else 'Public',
+                'record_count': zone.get('ResourceRecordSetCount', 0),
+                'comment': zone.get('Config', {}).get('Comment', 'N/A')
+            })
+        
+        assessment_data['services']['route53'] = {
+            'count': len(zone_list),
+            'hosted_zones': zone_list
+        }
+        
+        print(f"✓ Found {len(zone_list)} Route 53 hosted zones")
+        return True
+    except Exception as e:
+        print(f"✗ Error inventorying Route 53: {str(e)}")
+        return False
+
+def inventory_nlb(session, assessment_data):
+    """Inventory Network Load Balancers (NLB)"""
+    print("\n⚖️  Inventarisasi Network Load Balancers...")
+    try:
+        elbv2 = session.client('elbv2')
+        
+        load_balancers = elbv2.describe_load_balancers()
+        nlb_list = []
+        
+        for lb in load_balancers.get('LoadBalancers', []):
+            if lb['Type'] == 'network':
+                nlb_list.append({
+                    'name': lb['LoadBalancerName'],
+                    'arn': lb['LoadBalancerArn'],
+                    'dns': lb['DNSName'],
+                    'scheme': lb['Scheme'],
+                    'state': lb['State']['Code'],
+                    'vpc_id': lb['VpcId'],
+                    'availability_zones': [az['ZoneName'] for az in lb['AvailabilityZones']]
+                })
+        
+        assessment_data['services']['nlb'] = {
+            'count': len(nlb_list),
+            'load_balancers': nlb_list
+        }
+        
+        print(f"✓ Found {len(nlb_list)} Network Load Balancers")
+        return True
+    except Exception as e:
+        print(f"✗ Error inventorying NLB: {str(e)}")
+        return False
+
 def inventory_elb(session, assessment_data):
     """Inventory Elastic Load Balancers"""
     print("\n⚖️  Inventarisasi Load Balancers...")

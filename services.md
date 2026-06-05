@@ -15,7 +15,7 @@ Tandai layanan yang ingin di-assessment dengan mengganti `[ ]` menjadi `[x]`
 | 3   | ECS (Elastic Container Service)  | [ ]       |
 | 4   | EKS (Elastic Kubernetes Service) | [x]       |
 | 5   | Fargate                          | [ ]       |
-| 6   | ECR (Elastic Container Registry) | [ ]       |
+| 6   | ECR (Elastic Container Registry) | [x]       |
 
 ## Storage Services
 
@@ -38,17 +38,17 @@ Tandai layanan yang ingin di-assessment dengan mengganti `[ ]` menjadi `[x]`
 
 ## Networking & Content Delivery
 
-| No  | Services                             | Checklist |
-| -----| --------------------------------------| -----------|
-| 16  | VPC (Virtual Private Cloud)          | [x]       |
-| 17  | CloudFront                           | [ ]       |
-| 18  | Route 53                             | [ ]       |
-| 19  | Direct Connect                       | [ ]       |
-| 20  | Elastic Load Balancing (ELB)         | [x]       |
-| 21  | Application Load Balancer (ALB)      | [x]       |
-| 22  | Network Load Balancer (NLB)          | [ ]       |
-| 23  | NAT Gateway                          | [x]       |
-| 24  | API Gateway                          | [ ]       |
+| No  | Services                        | Checklist |
+| -----| ---------------------------------| -----------|
+| 16  | VPC (Virtual Private Cloud)     | [x]       |
+| 17  | CloudFront                      | [ ]       |
+| 18  | Route 53                        | [x]       |
+| 19  | Direct Connect                  | [ ]       |
+| 20  | Elastic Load Balancing (ELB)    | [x]       |
+| 21  | Application Load Balancer (ALB) | [x]       |
+| 22  | Network Load Balancer (NLB)     | [x]       |
+| 23  | NAT Gateway                     | [x]       |
+| 24  | API Gateway                     | [ ]       |
 
 ## Security, Identity & Compliance
 
