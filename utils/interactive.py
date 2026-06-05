@@ -20,7 +20,7 @@ SERVICE_GROUPS = [
         ("EKS (Elastic Kubernetes Service)",   "eks",           False),
         ("ECR (Elastic Container Registry)",   "ecr",           False),
         ("ALB (Application Load Balancer)",    "alb",           True),
-        ("NLB (Network Load Balancer)",        "nlb",           False),
+        ("NLB (Network Load Balancer)",        "nlb",           True),
     ]),
     ("Storage", [
         ("S3 (Simple Storage Service)",        "s3",            True),
@@ -37,17 +37,17 @@ SERVICE_GROUPS = [
         ("VPC (Virtual Private Cloud)",        "vpc",           True),
         ("NAT Gateway",                        "nat_gateway",   True),
         ("CloudFront",                         "cloudfront",    False),
-        ("Route 53",                           "route53",       True),
+        ("Route 53",                           "route53",       False),
     ]),
     ("Security", [
-        ("KMS (Key Management Service)",       "kms",           True),
-        ("Secrets Manager",                    "secretsmanager", True),
+        ("KMS (Key Management Service)",       "kms",           False),
+        ("Secrets Manager",                    "secretsmanager", False),
         ("WAF (Web Application Firewall)",     "waf",           False),
     ]),
     ("Operations", [
-        ("CloudWatch",                         "cloudwatch",    True),
-        ("CloudTrail",                         "cloudtrail",    True),
-        ("AWS Config",                         "config",        True),
+        ("CloudWatch",                         "cloudwatch",    False),
+        ("CloudTrail",                         "cloudtrail",    False),
+        ("AWS Config",                         "config",        False),
     ]),
     ("Integration & Analytics", [
         ("SNS (Simple Notification Service)",  "sns",           False),
