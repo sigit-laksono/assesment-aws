@@ -6,40 +6,55 @@ from dotenv import load_dotenv
 from utils.helpers import DecimalEncoder
 
 class AssessmentEngine:
-    def __init__(self):
-        """Initialize AWS Assessment dengan credentials dari .env"""
+    def __init__(
+        self,
+        customer_name: str | None = None,
+        region: str | None = None,
+        access_key: str | None = None,
+        secret_key: str | None = None,
+    ):
+        """
+        Initialize AWS Assessment.
+
+        Nilai bisa datang dari 2 sumber (prioritas atas ke bawah):
+          1. Parameter eksplisit (dari interactive setup)
+          2. Environment variable / .env file (mode lama)
+        """
         load_dotenv()
-        
-        self.access_key = os.getenv('AWS_ACCESS_KEY_ID')
-        self.secret_key = os.getenv('AWS_SECRET_ACCESS_KEY')
-        self.region = os.getenv('AWS_REGION', 'ap-southeast-1')
-        self.account_id = os.getenv('AWS_ACCOUNT_ID')
-        self.customer_name = os.getenv('CUSTOMER_NAME', 'AWS Customer')
-        
+
+        self.access_key    = access_key    or os.getenv('AWS_ACCESS_KEY_ID')
+        self.secret_key    = secret_key    or os.getenv('AWS_SECRET_ACCESS_KEY')
+        self.region        = region        or os.getenv('AWS_REGION', 'ap-southeast-1')
+        self.customer_name = customer_name or os.getenv('CUSTOMER_NAME', 'AWS Customer')
+        self.account_id    = os.getenv('AWS_ACCOUNT_ID')   # akan di-overwrite oleh STS
+
         # Validate credentials existence
         if not self.access_key or not self.secret_key:
-            raise ValueError("AWS credentials tidak ditemukan di .env file")
-        
+            raise ValueError(
+                "AWS credentials tidak ditemukan.\n"
+                "Jalankan tool secara interaktif atau isi .env file."
+            )
+
         # Initialize boto3 session
         self.session = boto3.Session(
             aws_access_key_id=self.access_key,
             aws_secret_access_key=self.secret_key,
-            region_name=self.region
+            region_name=self.region,
         )
-        
+
         # Data storage
         self.assessment_data = {
-            'customer_name': self.customer_name,
-            'account_id': self.account_id,
-            'region': self.region,
+            'customer_name':   self.customer_name,
+            'account_id':      self.account_id,
+            'region':          self.region,
             'assessment_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'billing_data': {},
-            'services': {},
-            'security_findings': []
+            'billing_data':    {},
+            'services':        {},
+            'security_findings': [],
         }
-        
-        print(f"✓ AWS Assessment initialized untuk customer: {self.customer_name}")
-        print(f"✓ Region: {self.region}")
+
+        print(f"✓ Customer : {self.customer_name}")
+        print(f"✓ Region   : {self.region}")
 
     def validate_credentials(self):
         """Validasi AWS credentials dan permissions"""

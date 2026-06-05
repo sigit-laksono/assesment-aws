@@ -15,6 +15,7 @@ from core.security_rules import evaluate as evaluate_security_rules
 
 # Import Utils
 from utils.config_loader import load_services_config
+from utils.interactive import run_interactive_setup
 
 # Import Collectors
 from collectors.billing import get_billing_data
@@ -31,10 +32,21 @@ class AWSAssessment(AssessmentEngine):
     Orchestrator untuk AWS Assessment.
     Mewarisi AssessmentEngine untuk manajemen session dan data.
     """
-    
-    def __init__(self):
-        super().__init__()
-        # Mapping service name ke fungsi kolektor
+
+    def __init__(
+        self,
+        customer_name: str | None = None,
+        region: str | None = None,
+        access_key: str | None = None,
+        secret_key: str | None = None,
+    ):
+        super().__init__(
+            customer_name=customer_name,
+            region=region,
+            access_key=access_key,
+            secret_key=secret_key,
+        )
+        # Mapping service code ke fungsi kolektor
         self.inventory_map = {
             'ec2': inventory_ec2,
             's3': inventory_s3,
@@ -65,50 +77,79 @@ class AWSAssessment(AssessmentEngine):
             'nlb': inventory_nlb,
         }
 
-    def run_assessment(self):
-        """Jalankan alur kerja assessment secara lengkap"""
+    def run_assessment(self, selected_services: list | None = None):
+        """
+        Jalankan alur kerja assessment secara lengkap.
+
+        selected_services: list service codes dari interactive setup
+                           (mis. ['ec2', 's3', 'rds']).
+                           Kalau None, fallback ke services.md.
+        """
         print("\n" + "="*60)
-        print("🚀 Memulai AWS Account Assessment (v2.0 Modular)")
+        print("🚀 AWS Account Assessment — dimulai")
         print("="*60)
-        
+
         # 1. Validasi Credentials
         if not self.validate_credentials():
             print("\n✗ Assessment gagal: Credentials tidak valid")
             return False
-        
+
         # 2. Ambil data billing (Cost Explorer)
         get_billing_data(self.session, self.assessment_data)
-        
-        # 3. Load konfigurasi layanan yang akan di-scan
-        services_config = load_services_config('services.md')
-        
-        # 4. Inventory services secara dinamis
-        print("\n" + "="*60)
-        print("📦 Inventarisasi Services")
-        print("="*60)
-        
-        for service_name, config in services_config.items():
-            if config.get('enabled', False) and service_name in self.inventory_map:
-                print(f"\n→ Memproses {config.get('display_name', service_name.upper())}...")
-                try:
-                    collector_func = self.inventory_map[service_name]
-                    collector_func(self.session, self.assessment_data)
-                except Exception as e:
-                    print(f"  ✗ Error pada kolektor {service_name}: {str(e)}")
-            elif service_name in self.inventory_map:
-                # Service ada tapi tidak di-enable di services.md
-                pass
 
-        # 5. Evaluasi security rules berdasarkan data inventaris
+        # 3. Tentukan services yang akan di-scan
+        if selected_services is not None:
+            # Dari interactive setup: bangun services_config on-the-fly
+            services_config = {
+                code: {'enabled': True, 'display_name': code.upper()}
+                for code in selected_services
+                if code in self.inventory_map
+            }
+        else:
+            # Fallback: baca dari services.md (mode non-interaktif)
+            services_config = load_services_config('services.md')
+
+        # 4. Inventory services
+        enabled = [
+            (name, cfg) for name, cfg in services_config.items()
+            if cfg.get('enabled', False) and name in self.inventory_map
+        ]
+        total = len(enabled)
+
+        print("\n" + "="*60)
+        print(f"📦 Inventarisasi Services ({total} service dipilih)")
+        print("="*60)
+
+        results = {}   # {service_name: 'ok' | 'error'}
+        for i, (service_name, config) in enumerate(enabled, start=1):
+            label = config.get('display_name', service_name.upper())
+            print(f"\n[{i}/{total}] → {label}...")
+            try:
+                self.inventory_map[service_name](self.session, self.assessment_data)
+                results[service_name] = 'ok'
+            except Exception as e:
+                print(f"  ✗ Error: {str(e)}")
+                results[service_name] = f'error: {str(e)}'
+
+        # 5. Evaluasi security rules
         evaluate_security_rules(self.assessment_data)
 
         # 6. Simpan data mentah ke JSON
         self.save_data()
-        
+
+        # 7. Run summary
         print("\n" + "="*60)
-        print("✓ Tahap pengambilan data selesai!")
+        print("📋 Run Summary")
         print("="*60)
-        
+        ok_count  = sum(1 for v in results.values() if v == 'ok')
+        err_count = total - ok_count
+        for name, status in results.items():
+            icon = "✓" if status == 'ok' else "✗"
+            print(f"  {icon}  {name:<20} {status}")
+        print(f"\n  Total: {ok_count}/{total} berhasil"
+              + (f", {err_count} gagal" if err_count else ""))
+        print("="*60)
+
         return True
 
     def generate_reports(self):
@@ -125,27 +166,51 @@ class AWSAssessment(AssessmentEngine):
         return html_file, pdf_file
 
 def main():
-    """Main Entry Point"""
+    """
+    Main Entry Point.
+
+    Alur:
+      1. Jalankan interactive setup wizard (questionary)
+         → kalau questionary tidak ada / user cancel → fallback ke .env + services.md
+      2. Inisialisasi AWSAssessment dengan hasil setup
+      3. run_assessment() + generate_reports()
+    """
     try:
-        # Inisialisasi orchestrator
-        assessment = AWSAssessment()
-        
-        # Jalankan pengambilan data
-        if assessment.run_assessment():
-            # Generate laporan (HTML dan PDF)
-            html_report, pdf_report = assessment.generate_reports()
-            
-            print("\n✅ Assessment completed successfully!")
-            print(f"   - HTML: {html_report}")
-            if pdf_report:
-                print(f"   - PDF:  {pdf_report}")
+        # ── Interactive Setup ─────────────────────────────────────────────────
+        setup = run_interactive_setup()
+
+        if setup is not None:
+            # Mode interaktif: pakai hasil dari wizard
+            assessment = AWSAssessment(
+                customer_name=setup['customer_name'],
+                region=setup['region'],
+                access_key=setup['access_key'],
+                secret_key=setup['secret_key'],
+            )
+            selected_services = setup['selected_services']
         else:
-            print("\n❌ Assessment failed!")
+            # Mode fallback: pakai .env + services.md (kompatibel dengan cara lama)
+            print("ℹ  Mode non-interaktif: menggunakan .env + services.md\n")
+            assessment = AWSAssessment()
+            selected_services = None   # run_assessment() akan baca services.md
+
+        # ── Assessment ────────────────────────────────────────────────────────
+        if assessment.run_assessment(selected_services=selected_services):
+            html_report, pdf_report = assessment.generate_reports()
+
+            print("\n✅ Assessment selesai!")
+            print(f"   HTML : {html_report}")
+            if pdf_report:
+                print(f"   PDF  : {pdf_report}")
+        else:
+            print("\n❌ Assessment gagal!")
             sys.exit(1)
-            
+
+    except KeyboardInterrupt:
+        print("\n\n  Assessment dibatalkan oleh user.\n")
+        sys.exit(0)
     except Exception as e:
         print(f"\n❌ Error Fatal: {str(e)}")
-        # Tampilkan traceback jika diperlukan untuk debugging
         # import traceback; traceback.print_exc()
         sys.exit(1)
 
