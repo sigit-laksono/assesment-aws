@@ -11,6 +11,7 @@ from datetime import datetime
 # Import Core modules
 from core.engine import AssessmentEngine
 from core.reporter import generate_html_report, generate_pdf_report
+from core.security_rules import evaluate as evaluate_security_rules
 
 # Import Utils
 from utils.config_loader import load_services_config
@@ -20,7 +21,7 @@ from collectors.billing import get_billing_data
 from collectors.compute import inventory_ec2, inventory_lambda, inventory_eks, inventory_alb, inventory_ecr
 from collectors.storage import inventory_s3, inventory_ebs, inventory_efs, inventory_backup
 from collectors.database import inventory_rds, inventory_dynamodb, inventory_elasticache
-from collectors.network import inventory_vpc, inventory_nat_gateway, inventory_cloudfront, inventory_elb, inventory_route53, inventory_nlb
+from collectors.network import inventory_vpc, inventory_nat_gateway, inventory_cloudfront, inventory_route53, inventory_nlb
 from collectors.security import inventory_kms, inventory_waf, inventory_secretsmanager
 from collectors.integration import inventory_sns, inventory_msk, inventory_amazonmq, inventory_glue, inventory_cloudwatch
 from collectors.operations import inventory_cloudtrail, inventory_config
@@ -41,7 +42,6 @@ class AWSAssessment(AssessmentEngine):
             'lambda': inventory_lambda,
             'dynamodb': inventory_dynamodb,
             'cloudfront': inventory_cloudfront,
-            'elb': inventory_elb,
             'eks': inventory_eks,
             'ebs': inventory_ebs,
             'elasticache': inventory_elasticache,
@@ -99,7 +99,10 @@ class AWSAssessment(AssessmentEngine):
                 # Service ada tapi tidak di-enable di services.md
                 pass
 
-        # 5. Simpan data mentah ke JSON
+        # 5. Evaluasi security rules berdasarkan data inventaris
+        evaluate_security_rules(self.assessment_data)
+
+        # 6. Simpan data mentah ke JSON
         self.save_data()
         
         print("\n" + "="*60)

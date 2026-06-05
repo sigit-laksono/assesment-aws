@@ -44,86 +44,85 @@ Tandai layanan yang ingin di-assessment dengan mengganti `[ ]` menjadi `[x]`
 | 17  | CloudFront                      | [ ]       |
 | 18  | Route 53                        | [x]       |
 | 19  | Direct Connect                  | [ ]       |
-| 20  | Elastic Load Balancing (ELB)    | [x]       |
-| 21  | Application Load Balancer (ALB) | [x]       |
-| 22  | Network Load Balancer (NLB)     | [x]       |
-| 23  | NAT Gateway                     | [x]       |
-| 24  | API Gateway                     | [ ]       |
+| 20  | Application Load Balancer (ALB) | [x]       |
+| 21  | Network Load Balancer (NLB)     | [x]       |
+| 22  | NAT Gateway                     | [x]       |
+| 23  | API Gateway                     | [ ]       |
 
 ## Security, Identity & Compliance
 
 | No  | Services                             | Checklist |
 | -----| --------------------------------------| -----------|
-| 25  | IAM (Identity and Access Management) | [ ]       |
-| 26  | KMS (Key Management Service)         | [x]       |
-| 27  | Secrets Manager                      | [x]       |
-| 28  | WAF (Web Application Firewall)       | [x]       |
-| 29  | Shield                               | [ ]       |
-| 30  | GuardDuty                            | [ ]       |
-| 31  | Certificate Manager (ACM)            | [ ]       |
-| 32  | Cognito                              | [ ]       |
+| 24  | IAM (Identity and Access Management) | [ ]       |
+| 25  | KMS (Key Management Service)         | [x]       |
+| 26  | Secrets Manager                      | [x]       |
+| 27  | WAF (Web Application Firewall)       | [x]       |
+| 28  | Shield                               | [ ]       |
+| 29  | GuardDuty                            | [ ]       |
+| 30  | Certificate Manager (ACM)            | [ ]       |
+| 31  | Cognito                              | [ ]       |
 
 ## Management & Governance
 
 | No  | Services        | Checklist |
 | -----| -----------------| -----------|
-| 33  | CloudWatch      | [x]       |
-| 34  | CloudTrail      | [x]       |
-| 35  | Config          | [x]       |
-| 36  | Systems Manager | [ ]       |
-| 37  | CloudFormation  | [ ]       |
-| 38  | Organizations   | [ ]       |
+| 32  | CloudWatch      | [x]       |
+| 33  | CloudTrail      | [x]       |
+| 34  | Config          | [x]       |
+| 35  | Systems Manager | [ ]       |
+| 36  | CloudFormation  | [ ]       |
+| 37  | Organizations   | [ ]       |
 
 ## Application Integration
 
 | No  | Services                                 | Checklist |
 | -----| ------------------------------------------| -----------|
-| 39  | SQS (Simple Queue Service)               | [ ]       |
-| 40  | SNS (Simple Notification Service)        | [x]       |
-| 41  | EventBridge                              | [ ]       |
-| 42  | Step Functions                           | [ ]       |
-| 43  | MSK (Managed Streaming for Apache Kafka) | [x]       |
-| 44  | Amazon MQ                                | [x]       |
+| 38  | SQS (Simple Queue Service)               | [ ]       |
+| 39  | SNS (Simple Notification Service)        | [x]       |
+| 40  | EventBridge                              | [ ]       |
+| 41  | Step Functions                           | [ ]       |
+| 42  | MSK (Managed Streaming for Apache Kafka) | [x]       |
+| 43  | Amazon MQ                                | [x]       |
 
 ## Analytics
 
 | No  | Services                | Checklist |
 | -----| -------------------------| -----------|
-| 45  | Athena                  | [ ]       |
-| 46  | Kinesis                 | [ ]       |
-| 47  | Glue                    | [x]       |
-| 48  | EMR (Elastic MapReduce) | [ ]       |
-| 49  | QuickSight              | [ ]       |
+| 44  | Athena                  | [ ]       |
+| 45  | Kinesis                 | [ ]       |
+| 46  | Glue                    | [x]       |
+| 47  | EMR (Elastic MapReduce) | [ ]       |
+| 48  | QuickSight              | [ ]       |
 
 ## Machine Learning
 
 | No  | Services    | Checklist |
 | -----| -------------| -----------|
-| 50  | SageMaker   | [ ]       |
-| 51  | Rekognition | [ ]       |
-| 52  | Comprehend  | [ ]       |
-| 53  | Lex         | [ ]       |
-| 54  | Polly       | [ ]       |
-| 55  | Bedrock     | [ ]       |
+| 49  | SageMaker   | [ ]       |
+| 50  | Rekognition | [ ]       |
+| 51  | Comprehend  | [ ]       |
+| 52  | Lex         | [ ]       |
+| 53  | Polly       | [ ]       |
+| 54  | Bedrock     | [ ]       |
 
 ## Developer Tools
 
 | No  | Services                             | Checklist |
 | -----| --------------------------------------| -----------|
-| 56  | CodeCommit                           | [ ]       |
-| 57  | CodeBuild                            | [ ]       |
-| 58  | CodeDeploy                           | [ ]       |
-| 59  | CodePipeline                         | [ ]       |
-| 60  | Cloud9                               | [ ]       |
-| 61  | Amplify                              | [ ]       |
+| 55  | CodeCommit                           | [ ]       |
+| 56  | CodeBuild                            | [ ]       |
+| 57  | CodeDeploy                           | [ ]       |
+| 58  | CodePipeline                         | [ ]       |
+| 59  | Cloud9                               | [ ]       |
+| 60  | Amplify                              | [ ]       |
 
 ## Migration & Transfer
 
 | No  | Services                             | Checklist |
 | -----| --------------------------------------| -----------|
-| 62  | Database Migration Service (DMS)     | [ ]       |
-| 63  | DataSync                             | [ ]       |
-| 64  | Snow Family                          | [ ]       |
+| 61  | Database Migration Service (DMS)     | [ ]       |
+| 62  | DataSync                             | [ ]       |
+| 63  | Snow Family                          | [ ]       |
 
 ## Cost Management
 
