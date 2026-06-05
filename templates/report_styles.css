@@ -399,37 +399,6 @@ tr:last-child td {
     color: #991b1b;
 }
 
-/* Severity Badge (Security Findings) */
-.severity-badge {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 600;
-    margin-right: 4px;
-    text-transform: capitalize;
-}
-
-.severity-badge.critical {
-    background: #fecaca;
-    color: #7f1d1d;
-}
-
-.severity-badge.high {
-    background: #fee2e2;
-    color: #991b1b;
-}
-
-.severity-badge.medium {
-    background: #fef3c7;
-    color: #92400e;
-}
-
-.severity-badge.low {
-    background: #dbeafe;
-    color: #1e40af;
-}
-
 .empty-state {
     padding: 32px;
     text-align: center;

@@ -50,7 +50,6 @@ class AssessmentEngine:
             'assessment_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'billing_data':    {},
             'services':        {},
-            'security_findings': [],
         }
 
         print(f"✓ Customer : {self.customer_name}")

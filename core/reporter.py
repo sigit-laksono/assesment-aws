@@ -930,84 +930,6 @@ def _generate_summary_services(assessment_data):
     
     return summary_html
 
-def _generate_security_findings(assessment_data):
-    """Generate HTML untuk Security Findings section"""
-    findings = assessment_data.get('security_findings', [])
-
-    if not findings:
-        return '''
-        <div class="empty-state">
-            <p>✅ Tidak ditemukan security finding dari rule yang dijalankan.</p>
-            <p style="color: var(--text-muted); font-size: 0.9em;">
-                Catatan: Rule yang dievaluasi saat ini adalah EBS unencrypted dan
-                CloudTrail multi-region. Rule tambahan akan ditambahkan di rilis berikutnya.
-            </p>
-        </div>
-        '''
-
-    # Hitung ringkasan per severity
-    sev_order = ['critical', 'high', 'medium', 'low']
-    sev_count = {s: 0 for s in sev_order}
-    for f in findings:
-        sev_count[f['severity']] = sev_count.get(f['severity'], 0) + 1
-
-    badges_html = ''.join(
-        f'<span class="severity-badge {s}">{sev_count[s]} {s.title()}</span>'
-        for s in sev_order if sev_count[s] > 0
-    )
-
-    rows_html = ''
-    # Urutkan: critical -> high -> medium -> low
-    sev_rank = {s: i for i, s in enumerate(sev_order)}
-    sorted_findings = sorted(findings, key=lambda x: sev_rank.get(x['severity'], 99))
-
-    for f in sorted_findings:
-        rows_html += f'''
-        <tr>
-            <td>{f['id']}</td>
-            <td><span class="severity-badge {f['severity']}">{f['severity'].title()}</span></td>
-            <td>{f['service']}</td>
-            <td>{f['resource_id']}</td>
-            <td>
-                <strong>{f['title']}</strong><br>
-                <span style="color: var(--text-muted); font-size: 0.9em;">{f['description']}</span><br>
-                <span style="font-size: 0.9em;"><strong>Rekomendasi:</strong> {f['recommendation']}</span>
-            </td>
-        </tr>
-        '''
-
-    return f'''
-    <div class="service-detail-card">
-        <div class="service-summary-stats">
-            <div class="stat-item">
-                <div class="stat-label">Total Findings</div>
-                <div class="stat-value">{len(findings)}</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-label">Severity Breakdown</div>
-                <div class="stat-badges">{badges_html}</div>
-            </div>
-        </div>
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Severity</th>
-                        <th>Service</th>
-                        <th>Resource</th>
-                        <th>Detail & Rekomendasi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {rows_html}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    '''
-
-
 def generate_html_report(assessment_data, customer_name, account_id, region):
     """Generate HTML report dari template"""
     print("\n📄 Generating HTML report...")
@@ -1098,10 +1020,6 @@ def generate_html_report(assessment_data, customer_name, account_id, region):
     services_html = _generate_services_inventory(assessment_data)
     template = template.replace('{{SERVICES_INVENTORY_CONTENT}}', services_html)
 
-    # Generate Security Findings section
-    security_html = _generate_security_findings(assessment_data)
-    template = template.replace('{{SECURITY_FINDINGS}}', security_html)
-    
     # Save HTML report
     os.makedirs('output', exist_ok=True)
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
