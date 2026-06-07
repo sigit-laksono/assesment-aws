@@ -399,6 +399,24 @@ tr:last-child td {
     color: #991b1b;
 }
 
+.platform-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 0.82em;
+    font-weight: 500;
+}
+
+.platform-badge.linux {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.platform-badge.windows {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
 .empty-state {
     padding: 32px;
     text-align: center;

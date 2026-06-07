@@ -2,22 +2,49 @@ def inventory_s3(session, assessment_data):
     """Inventory S3 buckets"""
     print("\n🪣 Inventarisasi S3 buckets...")
     try:
+        from botocore.exceptions import ClientError
         s3 = session.client('s3')
-        
+
         buckets = s3.list_buckets()
         bucket_list = []
-        
+
         for bucket in buckets['Buckets']:
+            name = bucket['Name']
+
+            # Lifecycle
+            try:
+                lc = s3.get_bucket_lifecycle_configuration(Bucket=name)
+                has_lifecycle = len(lc.get('Rules', [])) > 0
+            except ClientError as e:
+                has_lifecycle = False if e.response['Error']['Code'] == 'NoSuchLifecycleConfiguration' else None
+
+            # Versioning
+            try:
+                ver = s3.get_bucket_versioning(Bucket=name)
+                versioning_status = ver.get('Status', 'Never') or 'Never'
+            except ClientError:
+                versioning_status = None
+
+            # Encryption
+            try:
+                s3.get_bucket_encryption(Bucket=name)
+                encrypted = True
+            except ClientError:
+                encrypted = False
+
             bucket_list.append({
-                'name': bucket['Name'],
-                'creation_date': bucket['CreationDate'].strftime('%Y-%m-%d %H:%M:%S')
+                'name':               name,
+                'creation_date':      bucket['CreationDate'].strftime('%Y-%m-%d %H:%M:%S'),
+                'has_lifecycle':      has_lifecycle,
+                'versioning_status':  versioning_status,
+                'encrypted':          encrypted,
             })
-        
+
         assessment_data['services']['s3'] = {
-            'count': len(bucket_list),
-            'buckets': bucket_list
+            'count':   len(bucket_list),
+            'buckets': bucket_list,
         }
-        
+
         print(f"✓ Found {len(bucket_list)} S3 buckets")
         return True
     except Exception as e:
@@ -46,6 +73,9 @@ def inventory_ebs(session, assessment_data):
                     'iops':              volume.get('Iops', 'N/A'),
                     'encrypted':         volume.get('Encrypted', False),
                     'attached_instance': attached_instance,
+                    'throughput':        volume.get('Throughput', None),
+                    'name':              next((t['Value'] for t in volume.get('Tags', []) if t['Key'] == 'Name'), ''),
+                    'snapshot_id':       volume.get('SnapshotId', ''),
                 })
 
         assessment_data['services']['ebs'] = {

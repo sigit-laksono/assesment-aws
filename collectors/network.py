@@ -138,6 +138,15 @@ def inventory_nlb(session, assessment_data):
         for page in paginator.paginate():
             for lb in page.get('LoadBalancers', []):
                 if lb['Type'] == 'network':
+                    listener_count = 0
+                    try:
+                        listeners_resp = elbv2.describe_listeners(
+                            LoadBalancerArn=lb['LoadBalancerArn']
+                        )
+                        listener_count = len(listeners_resp.get('Listeners', []))
+                    except Exception as e:
+                        print(f"  ⚠ Error getting listeners for {lb['LoadBalancerName']}: {str(e)}")
+
                     nlb_list.append({
                         'name': lb['LoadBalancerName'],
                         'arn': lb['LoadBalancerArn'],
@@ -145,7 +154,8 @@ def inventory_nlb(session, assessment_data):
                         'scheme': lb['Scheme'],
                         'state': lb['State']['Code'],
                         'vpc_id': lb['VpcId'],
-                        'availability_zones': [az['ZoneName'] for az in lb['AvailabilityZones']]
+                        'availability_zones': [az['ZoneName'] for az in lb['AvailabilityZones']],
+                        'listener_count': listener_count,
                     })
 
         assessment_data['services']['nlb'] = {

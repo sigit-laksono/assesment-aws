@@ -12,7 +12,15 @@ def inventory_rds(session, assessment_data):
                 'id': instance['DBInstanceIdentifier'],
                 'engine': instance['Engine'],
                 'class': instance['DBInstanceClass'],
-                'status': instance['DBInstanceStatus']
+                'status': instance['DBInstanceStatus'],
+                'engine_version': instance.get('EngineVersion', ''),
+                'multi_az': instance.get('MultiAZ', False),
+                'storage_type': instance.get('StorageType', ''),
+                'allocated_storage': instance.get('AllocatedStorage', 0),
+                'storage_encrypted': instance.get('StorageEncrypted', False),
+                'backup_retention': instance.get('BackupRetentionPeriod', 0),
+                'publicly_accessible': instance.get('PubliclyAccessible', False),
+                'deletion_protection': instance.get('DeletionProtection', False),
             })
         
         assessment_data['services']['rds'] = {

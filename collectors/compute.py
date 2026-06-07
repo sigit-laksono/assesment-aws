@@ -10,11 +10,28 @@ def inventory_ec2(session, assessment_data):
         for page in paginator.paginate():
             for reservation in page.get('Reservations', []):
                 for instance in reservation.get('Instances', []):
+                    # Extract tags
+                    tags = {t['Key']: t['Value'] for t in instance.get('Tags', [])}
+
                     instance_list.append({
+                        # Existing fields
                         'id': instance['InstanceId'],
                         'type': instance['InstanceType'],
                         'state': instance['State']['Name'],
-                        'launch_time': instance['LaunchTime'].strftime('%Y-%m-%d %H:%M:%S')
+                        'launch_time': instance['LaunchTime'].strftime('%Y-%m-%d %H:%M:%S'),
+                        # Platform & Architecture
+                        'platform': instance.get('Platform', 'Linux'),
+                        'architecture': instance.get('Architecture', ''),
+                        # Network Topology
+                        'availability_zone': instance['Placement']['AvailabilityZone'],
+                        'vpc_id': instance.get('VpcId', ''),
+                        'subnet_id': instance.get('SubnetId', ''),
+                        'public_ip': instance.get('PublicIpAddress', None),
+                        # EBS Optimized
+                        'ebs_optimized': instance.get('EbsOptimized', False),
+                        # Tags
+                        'name': tags.get('Name', ''),
+                        'environment': tags.get('Environment', '') or tags.get('Env', ''),
                     })
 
         assessment_data['services']['ec2'] = {
@@ -147,6 +164,16 @@ def inventory_alb(session, assessment_data):
             for lb in page.get('LoadBalancers', []):
                 # Filter hanya ALB (Application Load Balancer)
                 if lb['Type'] == 'application':
+                    # Get listener count
+                    listener_count = 0
+                    try:
+                        listeners_resp = elbv2.describe_listeners(
+                            LoadBalancerArn=lb['LoadBalancerArn']
+                        )
+                        listener_count = len(listeners_resp.get('Listeners', []))
+                    except Exception as e:
+                        print(f"  ⚠ Error getting listeners for {lb['LoadBalancerName']}: {str(e)}")
+
                     alb_list.append({
                         'name': lb['LoadBalancerName'],
                         'arn': lb['LoadBalancerArn'],
@@ -154,7 +181,8 @@ def inventory_alb(session, assessment_data):
                         'scheme': lb['Scheme'],
                         'state': lb['State']['Code'],
                         'vpc_id': lb['VpcId'],
-                        'availability_zones': [az['ZoneName'] for az in lb['AvailabilityZones']]
+                        'availability_zones': [az['ZoneName'] for az in lb['AvailabilityZones']],
+                        'listener_count': listener_count,
                     })
 
         assessment_data['services']['alb'] = {

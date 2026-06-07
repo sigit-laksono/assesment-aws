@@ -20,6 +20,11 @@ output/
 *.json
 *.csv
 
+# Bulk pricing JSON dari AWS (~140 MB) — tidak di-commit, file extracted
+# di data-pricing/extracted/ tetap masuk repo (override di bawah).
+data-pricing/*.json
+!data-pricing/extracted/*.json
+
 # IDE
 .kiro/
 .vscode/
