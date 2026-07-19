@@ -18,7 +18,14 @@ from collectors.cost_optimization import run_cost_optimization
 # Import Utils
 from utils.interactive import run_interactive_setup
 
-# Import Collectors
+# Import Legacy Adapter — routes migrated services through the Capability
+# Registry (Task 8.2); unmigrated services fall back to their legacy
+# collector function directly.
+from agentic.legacy_adapter import run_legacy_capability
+
+# Import Collectors — still needed as fallback for services with no
+# migrated capability (lambda, eks, alb, ecr) and for billing/cost
+# optimization, which run outside the per-service inventory loop.
 from collectors.billing import get_billing_data
 from collectors.compute import inventory_ec2, inventory_lambda, inventory_eks, inventory_alb, inventory_ecr
 from collectors.storage import inventory_s3, inventory_ebs, inventory_efs, inventory_backup
@@ -119,7 +126,14 @@ class AWSAssessment(AssessmentEngine):
             label = config.get('display_name', service_name.upper())
             print(f"\n[{i}/{total}] → {label}...")
             try:
-                self.inventory_map[service_name](self.session, self.assessment_data)
+                run_legacy_capability(
+                    service_name,
+                    self.session,
+                    self.account_id,
+                    self.region,
+                    self.assessment_data,
+                    legacy_collector=self.inventory_map[service_name],
+                )
                 results[service_name] = 'ok'
             except Exception as e:
                 print(f"  ✗ Error: {str(e)}")
