@@ -1,139 +1,183 @@
-# AWS Account Assessment Tool (Modular v2.0)
+# AWS Account Assessment Tool
 
-Tool profesional untuk melakukan assessment komprehensif terhadap akun AWS, menghasilkan laporan inventarisasi, analisis biaya (billing), dan ringkasan sumber daya dalam format HTML interaktif serta PDF.
+Tool untuk melakukan assessment komprehensif terhadap akun AWS, menghasilkan laporan inventarisasi, analisis biaya, dan ringkasan sumber daya. Mendukung dua mode: **interaktif** (wizard terminal untuk manusia) dan **agentic** (dipanggil non-interaktif oleh AI agent).
 
-## 🚀 Apa yang Baru di v2.0 (Refactored)
+## Dua Cara Pakai
 
-Kami telah melakukan refakturisasi besar-besaran untuk mengubah script monolitik menjadi arsitektur modular yang modern, bersih, dan mudah dikelola.
+### 1. Mode Interaktif (Wizard)
 
-### 🌟 Fitur Unggulan
-- **Modular Architecture**: Logika bisnis dipisah berdasarkan kategori (Compute, Storage, Network, dll). Menambah layanan AWS baru kini semudah menambah file di folder `collectors/`.
-- **Modern PDF Engine (Playwright)**: Menggantikan engine lama (`pdfkit`/`wkhtmltopdf`) dengan **Playwright (Headless Chromium)**. 
-  - ✅ Mendukung modern CSS (Flexbox, Grid, CSS Variables).
-  - ✅ Mendukung rendering JavaScript (Chart.js kini muncul di PDF).
-  - ✅ Tidak perlu instalasi manual biner OS yang rumit.
-- **Improved UI/UX**: Interface dashboard baru dengan Sidebar dinamis, Scrollspy, dan mode cetak yang dioptimalkan.
-- **Smart Reporting**: 
-  - **Clean Asset Separation**: CSS dan JavaScript kini dipisah dari file HTML utama untuk memudahkan modifikasi desain dan fitur.
-  - **Auto-Inlining (Standalone HTML)**: Meskipun file dipisah saat development, script akan menggabungkannya kembali secara otomatis saat generate report. Hasilnya tetap satu file HTML mandiri yang mudah dibagikan tanpa folder assets tambahan.
-  - **HTML**: Interaktif dengan paginasi, pencarian real-time, dan filter kategori.
-  - **PDF**: Otomatis menonaktifkan paginasi agar seluruh data (misal: ratusan EC2) muncul lengkap dalam satu dokumen tanpa tombol navigasi yang mengganggu.
-- **Enhanced Data Handling**: Menggunakan `DecimalEncoder` untuk menangani tipe data finansial dari AWS secara akurat.
-- **Improved Performance**: Penggunaan session AWS yang efisien dan pemisahan tahap *Inventory* dan *Reporting*.
+```bash
+python aws_assessment.py
+```
+
+Sama seperti sebelumnya: pilih service interaktif, hasilnya HTML/PDF report di `output/`.
+
+### 2. Mode Agentic (untuk AI Agent / Automation)
+
+```python
+from agentic import invoke, InvocationRequest, CapabilityRequest, AccountTarget, ExecutionContext
+from agentic.registry import CapabilityRegistryImpl
+from agentic.ec2_contract import register_ec2_inventory
+from agentic.legacy_contracts import register_all_legacy_capabilities
+from agentic.schemas.processor import CanonicalSchemaProcessor
+
+# Setup registry (satu kali)
+registry = CapabilityRegistryImpl()
+register_ec2_inventory(registry)
+register_all_legacy_capabilities(registry)
+
+# Discover semua capability yang tersedia
+manifest = registry.snapshot()
+for cap in manifest.capabilities:
+    print(f"{cap.capability_id}@{cap.version}")
+
+# Panggil satu capability
+request = InvocationRequest(
+    capabilities=(CapabilityRequest(id="ec2.inventory", version="1.0.0"),),
+    targets=(AccountTarget(account_id="123456789012"),),
+    regions=("ap-southeast-1",),
+    execution_context=ExecutionContext(
+        caller_id="my-agent",
+        correlation_id="run-001",
+        purpose="monthly-check",
+    ),
+)
+result = invoke(request, registry, CanonicalSchemaProcessor())
+print(result.execution_status)  # "succeeded" atau "failed"
+```
+
+**Discovery**: `registry.snapshot()` mengembalikan `CapabilityManifest` — daftar machine-readable semua capability, versi, permission, dan allowed operations. Agent cukup baca ini untuk tahu apa yang tersedia.
+
+**Multi-account / Multi-region**:
+
+```python
+request = InvocationRequest(
+    capabilities=(CapabilityRequest(id="s3.inventory", version="1.0.0"),),
+    targets=(
+        AccountTarget(account_id="111111111111"),
+        AccountTarget(account_id="222222222222", role_ref="arn:aws:iam::222222222222:role/assessor"),
+    ),
+    regions=("ap-southeast-1", "us-east-1"),
+    execution_context=ExecutionContext(caller_id="agent", correlation_id="x", purpose="audit"),
+)
+```
+
+Orchestrator membuat execution unit per kombinasi account × region (atau `aws-global` untuk service global) dan menjalankan dengan bounded concurrency (default 4).
 
 ---
 
-## 🏗️ Struktur Proyek (Modular)
+## Capability yang Tersedia
+
+| Service Code (wizard) | Capability ID | Scope |
+|---|---|---|
+| ec2 | `ec2.inventory` | regional |
+| s3 | `s3.inventory` | global |
+| rds | `rds.inventory` | regional |
+| dynamodb | `dynamodb.inventory` | regional |
+| ebs | `ebs.inventory` | regional |
+| efs | `efs.inventory` | regional |
+| vpc | `vpc.inventory` | regional |
+| nat_gateway | `nat.inventory` | regional |
+| cloudfront | `cloudfront.inventory` | global |
+| route53 | `route53.inventory` | global |
+| nlb | `nlb.inventory` | regional |
+| iam | `iam.inventory` | global |
+| kms | `kms.inventory` | regional |
+| waf | `waf.inventory` | regional |
+| cloudwatch | `cloudwatch.inventory` | regional |
+| cloudtrail | `cloudtrail.inventory` | regional |
+| config | `config.inventory` | regional |
+| backup | `backup.inventory` | regional |
+| secretsmanager | `secretsmanager.inventory` | regional |
+| sns | `sns.inventory` | regional |
+| msk | `msk.inventory` | regional |
+| amazonmq | `amazonmq.inventory` | regional |
+| glue | `glue.inventory` | regional |
+
+Service yang belum dimigrasikan ke registry (fallback ke collector lama): `lambda`, `eks`, `alb`, `ecr`.
+
+---
+
+## Keamanan (Read-Only Guard)
+
+Semua collector yang sudah dimigrasikan berjalan lewat `GuardedSession`. Setiap operasi AWS API dicek terhadap allowlist exact **sebelum** request dikirim ke AWS. Kalau kode collector mencoba operasi yang tidak ada di daftar read-only → ditolak langsung dengan error `guard-violation`. Agent tidak bisa secara tidak sengaja memutasi resource AWS.
+
+IAM Policy minimal yang dibutuhkan: `Describe*` dan `List*` pada service terkait, plus `ce:GetCostAndUsage` untuk billing.
+
+---
+
+## Struktur Proyek
 
 ```text
 .
-├── aws_assessment.py      # Orchestrator (Main Entry Point)
-├── core/                  # Jantung aplikasi
-│   ├── engine.py          # Session management & Data storage
-│   └── reporter.py        # Logic pembuatan HTML & PDF (Playwright)
-├── collectors/            # Modul pengambil data per kategori
-│   ├── billing.py         # Cost Explorer analysis
-│   ├── compute.py         # EC2, Lambda, EKS, ALB
-│   ├── storage.py         # S3, EBS, EFS, AWS Backup
-│   ├── database.py        # RDS, DynamoDB, ElastiCache
-│   ├── network.py         # VPC, NAT Gateway, CloudFront, ELB
-│   ├── security.py        # KMS, WAF, Secrets Manager
-│   ├── integration.py     # SNS, MSK, Amazon MQ, Glue
-│   └── operations.py      # CloudTrail, AWS Config
-├── utils/                 # Helper functions
-│   ├── helpers.py         # JSON Encoders, Formatters
-│   └── config_loader.py   # Loader untuk services.md
-├── templates/             # UI Assets
-│   ├── report_template.html   # Struktur HTML utama
-│   ├── report_styles.css      # Desain Dashboard (Modern CSS Variables)
-│   └── report_scripts.js      # Logika Filter, Search, Paginasi
-├── output/                # Hasil assessment (JSON, HTML, PDF)
-├── requirements.txt
-└── .env                   # Konfigurasi credentials
+├── aws_assessment.py          # Entry point interaktif (wizard)
+├── agentic/                   # Layer agentic (invoke, registry, orchestrator)
+│   ├── __init__.py            # Public API: invoke(), summarize(), list_runs()
+│   ├── orchestrator.py        # invoke() — entry point agent
+│   ├── registry.py            # Capability Registry immutable
+│   ├── ec2_collector.py       # EC2 collector (granular filter/field)
+│   ├── ec2_contract.py        # Register ec2.inventory@1.0.0
+│   ├── legacy_collectors.py   # 8 collector lama dimigrasikan ke CollectorOutcome
+│   ├── legacy_contracts.py    # Register semua capability lama ke registry
+│   ├── legacy_adapter.py      # Bridge wizard → registry → collector → reporter
+│   ├── executor.py            # Bounded concurrent executor
+│   ├── session.py             # SessionFactory + GuardedSession (read-only guard)
+│   ├── models.py              # Semua domain model (immutable dataclass)
+│   ├── interfaces.py          # Protocol interfaces
+│   ├── profile_registry.py    # Assessment Profile Registry
+│   ├── summary.py             # Per-capability result summary
+│   ├── runs.py                # list_runs() — scan output/agentic/runs/
+│   ├── readiness.py           # assert_capability_ready() checklist
+│   ├── schemas/               # JSON Schema + canonical processor
+│   └── profiles/              # monthly-standard@1.0.0 (draft)
+├── collectors/                # Collector lama (masih dipakai untuk fallback)
+├── core/                      # Engine (session) + Reporter (HTML/PDF)
+├── templates/                 # HTML/CSS/JS untuk report
+├── tests/                     # 657 tests (pytest + hypothesis)
+├── output/                    # Hasil assessment
+└── requirements.txt
 ```
 
 ---
 
-## 🛠️ Instalasi & Setup
+## Instalasi
 
-### 1. Persiapan Environment
-Buka terminal/command prompt di dalam folder project dan buat virtual environment:
-
-**Linux / macOS:**
 ```bash
-python3 -m venv venv
-source venv/bin/activate
-```
+# Buat virtual environment
+python -m venv venv-win
+.\venv-win\Scripts\Activate.ps1   # Windows PowerShell
 
-**Windows (Command Prompt):**
-```cmd
-python -m venv venv
-venv\Scripts\activate
-```
-
-**Windows (PowerShell):**
-```powershell
-python -m venv venv
-.\venv\Scripts\Activate.ps1
-```
-
-### 2. Install Dependencies
-Kami sekarang menggunakan **Playwright** untuk PDF yang lebih baik:
-```bash
+# Install dependencies
 pip install -r requirements.txt
-playwright install chromium
+playwright install chromium        # Untuk PDF report
 ```
 
-### 3. Konfigurasi
-Copy `.env.example` ke `.env` dan isi data customer Anda:
+Copy `.env.example` ke `.env` dan isi: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `CUSTOMER_NAME`.
+
+---
+
+## Testing
+
 ```bash
-cp .env.example .env
-```
-Isi variabel berikut: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `CUSTOMER_NAME`.
-
-#### 📝 Konfigurasi Layanan (services.md)
-Anda dapat mengatur layanan AWS mana saja yang ingin di-scan melalui file `services.md`.
-- **Checklist**: Cukup ganti `[ ]` menjadi `[x]` pada tabel layanan untuk mengaktifkan scanner-nya.
-- **Dinamis**: Engine akan secara otomatis hanya memproses layanan yang diberi tanda centang `[x]`.
-- **Kategori**: Layanan dikelompokkan berdasarkan kategori standar AWS (Compute, Storage, Database, dll).
-
----
-
-## 📈 Cara Menjalankan
-
-Cukup jalankan orchestrator utama:
-```bash
-python3 aws_assessment.py
+.\venv-win\Scripts\python.exe -m pytest tests/ -v
 ```
 
-**Alur Kerja Otomatis:**
-1. **Validation**: Mengecek koneksi ke AWS STS.
-2. **Collection**: Mengambil data billing bulan lalu dan inventarisasi 22+ layanan AWS.
-3. **Storage**: Menyimpan data mentah ke `output/*.json`.
-4. **Reporting**: Menghasilkan `output/*.html` dan `output/*.pdf`.
+657 test, termasuk property-based tests (Hypothesis) untuk deterministic planning, canonical JSON round-trip, EC2 filter correctness, concurrency bounds, dan profile immutability.
 
 ---
 
-## 📊 Detail Fitur Laporan
+## Report Output
 
-### 🔵 Interactive HTML Report
-- **Paginasi**: Tabel besar (seperti EC2/EBS) dibagi per 10 baris agar tetap ringan.
-- **Real-time Search**: Cari resource berdasarkan Nama, ID, atau Status secara instan.
-- **Category Filter**: Filter tampilan berdasarkan kategori (Compute, Storage, dll).
-- **Smooth Navigation**: Sidebar yang mengikuti posisi scroll Anda.
+### HTML Report
+- Paginasi tabel, search real-time, filter kategori, sidebar navigasi.
 
-### 🔴 Professional PDF Report
-- **Auto-Expansion**: Paginasi dimatikan secara otomatis saat pembuatan PDF agar SEMUA resource tercetak.
-- **Chart Rendering**: Grafik biaya dari Chart.js dirender sempurna.
-- **Print Optimized**: Menghilangkan tombol-tombol interaktif dan sidebar agar bersih saat diprint.
+### PDF Report
+- Auto-expansion (semua data dicetak), Chart.js dirender, mode cetak bersih.
 
 ---
 
-## 🔒 Security
-IAM Policy minimal yang dibutuhkan tetap sama dengan versi sebelumnya (membutuhkan akses `ce:GetCostAndUsage` dan `Describe*` pada layanan terkait).
+## Troubleshooting
 
----
-
-## 📝 Troubleshooting
-- **Playwright Error**: Jika PDF gagal, pastikan Anda sudah menjalankan `playwright install chromium`.
-- **Billing Data Kosong**: AWS Cost Explorer memerlukan waktu 24 jam untuk aktif setelah di-enable di console.
+- **Playwright Error**: Pastikan `playwright install chromium` sudah dijalankan.
+- **Billing Data Kosong**: AWS Cost Explorer perlu 24 jam setelah di-enable.
+- **GuardViolationError**: Collector mencoba operasi AWS yang tidak ada di allowlist — cek registrasi capability di `legacy_contracts.py`.
