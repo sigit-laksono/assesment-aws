@@ -11,6 +11,8 @@ ENV/
 build/
 dist/
 *.egg-info/
+.hypothesis/
+.pytest_cache/
 
 # Output files (hanya folder output, bukan templates)
 output/

@@ -1,6 +1,14 @@
 # AWS Account Assessment Tool
 
-Tool untuk melakukan assessment komprehensif terhadap akun AWS, menghasilkan laporan inventarisasi, analisis biaya, dan rekomendasi cost optimization. Output berupa HTML/PDF report untuk manusia dan JSON untuk AI/automation.
+Tool untuk melakukan assessment komprehensif terhadap akun AWS, menghasilkan laporan inventarisasi, analisis biaya, dan rekomendasi cost optimization. Output berupa HTML report untuk manusia dan JSON untuk AI/automation.
+
+## Screenshot
+
+### Run Summary (Terminal)
+![Run Summary](screenshoot/Run-Summary.png)
+
+### HTML Report (Browser)
+![Report HTML](screenshoot/Report%20HTML.png)
 
 ## Cara Pakai
 
