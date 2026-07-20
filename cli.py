@@ -118,11 +118,9 @@ def main() -> None:
 
     # Generate report kecuali --no-report
     if not args.no_report:
-        html_report, pdf_report = assessment.generate_reports()
+        html_report = assessment.generate_reports()
         print(f"\n✅ Assessment selesai!")
         print(f"   HTML : {html_report}")
-        if pdf_report:
-            print(f"   PDF  : {pdf_report}")
     else:
         print(f"\n✅ Assessment selesai (JSON only, report dilewati)")
 

@@ -62,9 +62,10 @@ sns, vpc, waf
 |------|-------------|----------------|
 | `assessment_data_*.json` | AI / automation | ~15k token |
 | `assessment_report_*.html` | Manusia (browser) | ~23k token |
-| `assessment_report_*.pdf` | Manusia (cetak/share) | — |
 
 JSON output berisi semua data mentah — AI agent bisa langsung baca dan analisis tanpa parsing HTML.
+
+Butuh PDF? Buka HTML di browser → Print (Ctrl+P) → Save as PDF.
 
 ---
 
@@ -105,7 +106,6 @@ python -m venv venv-win
 
 # Dependencies
 pip install -r requirements.txt
-playwright install chromium        # Untuk PDF report
 ```
 
 ---
@@ -129,7 +129,6 @@ python -m pytest tests/ -v
 ## Report Features
 
 - **HTML**: Tabel dengan paginasi, search real-time, filter kategori, sidebar navigasi
-- **PDF**: Auto-expansion semua data, Chart.js rendered, clean print mode
 - **JSON**: Structured data mentah untuk automation/AI consumption
 
 ---
@@ -138,6 +137,5 @@ python -m pytest tests/ -v
 
 | Problem | Solusi |
 |---------|--------|
-| Playwright error | `playwright install chromium` |
 | Billing data kosong | AWS Cost Explorer perlu 24 jam setelah di-enable |
 | Region tidak tersedia | Beberapa service belum available di semua region |

@@ -10,7 +10,7 @@ from datetime import datetime
 
 # Import Core modules
 from core.engine import AssessmentEngine
-from core.reporter import generate_html_report, generate_pdf_report
+from core.reporter import generate_html_report
 
 # Import Cost Optimization
 from collectors.cost_optimization import run_cost_optimization
@@ -143,17 +143,14 @@ class AWSAssessment(AssessmentEngine):
         return True
 
     def generate_reports(self):
-        """Mendelegasikan pembuatan laporan ke modul reporter"""
+        """Generate HTML report"""
         html_file = generate_html_report(
             self.assessment_data, 
             self.customer_name, 
             self.account_id, 
             self.region
         )
-        
-        pdf_file = generate_pdf_report(html_file)
-        
-        return html_file, pdf_file
+        return html_file
 
 def main():
     """
@@ -176,12 +173,10 @@ def main():
 
         # ── Assessment ────────────────────────────────────────────────────────
         if assessment.run_assessment(selected_services=setup['selected_services']):
-            html_report, pdf_report = assessment.generate_reports()
+            html_report = assessment.generate_reports()
 
             print("\n✅ Assessment selesai!")
             print(f"   HTML : {html_report}")
-            if pdf_report:
-                print(f"   PDF  : {pdf_report}")
         else:
             print("\n❌ Assessment gagal!")
             sys.exit(1)
