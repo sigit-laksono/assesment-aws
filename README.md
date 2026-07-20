@@ -100,12 +100,26 @@ Butuh PDF? Buka HTML di browser → Print (Ctrl+P) → Save as PDF.
 ## Instalasi
 
 ```bash
-# Virtual environment
-python -m venv venv-win
-.\venv-win\Scripts\Activate.ps1   # Windows PowerShell
+# Clone repo
+git clone <repo-url>
+cd assesment-aws
 
-# Dependencies
-pip install -r requirements.txt
+# Buat virtual environment
+python -m venv venv
+source venv/bin/activate        # Linux/Mac
+.\venv\Scripts\Activate.ps1     # Windows PowerShell
+
+# Install (mendaftarkan command aws-assess ke PATH)
+pip install -e .
+
+# Install dev dependencies (pytest, hypothesis) — opsional
+pip install -e ".[dev]"
+```
+
+Setelah install, command `aws-assess` langsung tersedia dari terminal mana saja:
+
+```bash
+aws-assess --all --region ap-southeast-3
 ```
 
 ---

@@ -1,0 +1,28 @@
+[project]
+name = "aws-assess"
+version = "1.0.0"
+description = "AWS Account Assessment Tool — scan infrastructure, generate report"
+requires-python = ">=3.11"
+dependencies = [
+    "boto3>=1.34.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "hypothesis>=6.100.0",
+    "jsonschema>=4.21.0",
+]
+
+[project.scripts]
+aws-assess = "cli:main"
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["collectors*", "core*", "utils*"]
+
+[tool.setuptools]
+py-modules = ["cli", "aws_assessment"]
