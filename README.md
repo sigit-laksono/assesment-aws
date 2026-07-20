@@ -5,10 +5,10 @@ Tool untuk melakukan assessment komprehensif terhadap akun AWS, menghasilkan lap
 ## Screenshot
 
 ### Run Summary (Terminal)
-![Run Summary](screenshoot/run-summary.png)
+![Run Summary](Screenshoot/run-summary.png)
 
 ### HTML Report (Browser)
-![Report HTML](screenshoot/report-html.png)
+![Report HTML](Screenshoot/report-html.png)
 
 ## Cara Pakai
 
