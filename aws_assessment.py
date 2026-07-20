@@ -18,14 +18,7 @@ from collectors.cost_optimization import run_cost_optimization
 # Import Utils
 from utils.interactive import run_interactive_setup
 
-# Import Legacy Adapter — routes migrated services through the Capability
-# Registry (Task 8.2); unmigrated services fall back to their legacy
-# collector function directly.
-from agentic.legacy_adapter import run_legacy_capability
-
-# Import Collectors — still needed as fallback for services with no
-# migrated capability (lambda, eks, alb, ecr) and for billing/cost
-# optimization, which run outside the per-service inventory loop.
+# Import Collectors
 from collectors.billing import get_billing_data
 from collectors.compute import inventory_ec2, inventory_lambda, inventory_eks, inventory_alb, inventory_ecr
 from collectors.storage import inventory_s3, inventory_ebs, inventory_efs, inventory_backup
@@ -43,16 +36,12 @@ class AWSAssessment(AssessmentEngine):
 
     def __init__(
         self,
-        customer_name: str | None = None,
-        region: str | None = None,
-        access_key: str | None = None,
-        secret_key: str | None = None,
+        customer_name: str = 'AWS Customer',
+        region: str = 'ap-southeast-1',
     ):
         super().__init__(
             customer_name=customer_name,
             region=region,
-            access_key=access_key,
-            secret_key=secret_key,
         )
         # Mapping service code ke fungsi kolektor
         self.inventory_map = {
@@ -126,14 +115,7 @@ class AWSAssessment(AssessmentEngine):
             label = config.get('display_name', service_name.upper())
             print(f"\n[{i}/{total}] → {label}...")
             try:
-                run_legacy_capability(
-                    service_name,
-                    self.session,
-                    self.account_id,
-                    self.region,
-                    self.assessment_data,
-                    legacy_collector=self.inventory_map[service_name],
-                )
+                self.inventory_map[service_name](self.session, self.assessment_data)
                 results[service_name] = 'ok'
             except Exception as e:
                 print(f"  ✗ Error: {str(e)}")
@@ -190,8 +172,6 @@ def main():
         assessment = AWSAssessment(
             customer_name=setup['customer_name'],
             region=setup['region'],
-            access_key=setup['access_key'],
-            secret_key=setup['secret_key'],
         )
 
         # ── Assessment ────────────────────────────────────────────────────────

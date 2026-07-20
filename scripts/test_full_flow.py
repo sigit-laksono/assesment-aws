@@ -4,18 +4,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import boto3
-import os
-from dotenv import load_dotenv
 from collectors.cost_optimization import run_cost_optimization
 from utils.pricing import get_cache_info
 
-load_dotenv()
-
-session = boto3.Session(
-    aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-    aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
-    region_name='ap-southeast-3',
-)
+# ponytail: ambient credentials from AWS CLI
+session = boto3.Session(region_name='ap-southeast-3')
 
 # Simulasi data dengan 1 EBS unattached
 data = {

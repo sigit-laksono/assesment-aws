@@ -1,4 +1,0 @@
-D:\07. Kiro-Project\assesment-aws\README.md
-D:\07. Kiro-Project\assesment-aws\docs\PRD_AWS_Assessment_Tool.md
-D:\07. Kiro-Project\assesment-aws\requirements.txt
-D:\07. Kiro-Project\assesment-aws\templates\report_template.html

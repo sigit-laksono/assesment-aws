@@ -9,10 +9,7 @@
     "st1": 0.054,
     "standard": 0.08
   },
-  "last_api_fetch": "2026-07-19T19:28:33.743458+00:00",
+  "last_api_fetch": "2026-07-20T06:12:33.714916+00:00",
   "nlb_hr": 0.0252,
-  "region": "ap-southeast-3",
-  "source_versions": {
-    "AmazonEC2": "20260604220057"
-  }
+  "region": "ap-southeast-3"
 }

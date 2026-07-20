@@ -2,11 +2,9 @@
 Interactive setup wizard untuk AWS Assessment Tool.
 Menggunakan input() standar Python — kompatibel dengan semua terminal
 termasuk WSL, SSH, dan terminal tanpa dukungan ANSI penuh.
-"""
 
-import os
-import getpass
-from dotenv import load_dotenv
+Credentials diambil dari AWS CLI credential chain di runtime.
+"""
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -56,15 +54,6 @@ SERVICE_GROUPS = [
         ("AWS Glue",                           "glue",          False),
     ]),
 ]
-
-
-def _mask(value: str, show_chars: int = 4) -> str:
-    """Tampilkan N karakter pertama, sisanya bintang."""
-    if not value:
-        return ""
-    if len(value) <= show_chars:
-        return "*" * len(value)
-    return value[:show_chars] + "*" * (len(value) - show_chars)
 
 
 def _prompt(label: str, default: str = "") -> str:
@@ -140,69 +129,30 @@ def run_interactive_setup() -> dict | None:
         {
             'customer_name'    : str,
             'region'           : str,
-            'access_key'       : str,
-            'secret_key'       : str,
             'selected_services': list[str],
         }
     Return None kalau user cancel.
     """
-    # Muat .env untuk nilai default
-    load_dotenv()
-    env_access_key    = os.getenv('AWS_ACCESS_KEY_ID', '')
-    env_secret_key    = os.getenv('AWS_SECRET_ACCESS_KEY', '')
-    env_region        = os.getenv('AWS_REGION', 'ap-southeast-1')
-    env_customer_name = os.getenv('CUSTOMER_NAME', '')
-
     flat_services, default_nos = _build_service_table()
 
     print("\n" + "=" * 58)
     print("   AWS Account Assessment Tool  v2.0")
     print("=" * 58)
+    print("   Credentials: AWS CLI profile aktif di runtime ini")
 
     try:
         # ── 1. Customer Name ──────────────────────────────────────────────────
-        print("\n[1/4] Informasi Customer")
+        print("\n[1/3] Informasi Customer")
         print("-" * 40)
-        customer_name = _prompt("Nama Customer", env_customer_name)
+        customer_name = _prompt("Nama Customer")
         if not customer_name:
             print("  Nama customer tidak boleh kosong.")
             return None
 
-        region = _prompt("AWS Region", env_region)
+        region = _prompt("AWS Region", "ap-southeast-1")
 
-        # ── 2. Credentials ────────────────────────────────────────────────────
-        print("\n[2/4] AWS Credentials")
-        print("-" * 40)
-
-        if env_access_key and env_secret_key:
-            print(f"  Credentials ditemukan di .env:")
-            print(f"    AWS_ACCESS_KEY_ID     : {_mask(env_access_key)}")
-            print(f"    AWS_SECRET_ACCESS_KEY : {_mask(env_secret_key)}")
-            print()
-            use_env = _confirm("Gunakan credentials dari .env?", default=True)
-
-            if use_env:
-                access_key = env_access_key
-                secret_key = env_secret_key
-            else:
-                access_key = _prompt("AWS Access Key ID")
-                if not access_key:
-                    return None
-                secret_key = getpass.getpass("  AWS Secret Access Key: ").strip()
-                if not secret_key:
-                    return None
-        else:
-            print("  Credentials tidak ditemukan di .env, masukkan manual:")
-            print()
-            access_key = _prompt("AWS Access Key ID")
-            if not access_key:
-                return None
-            secret_key = getpass.getpass("  AWS Secret Access Key: ").strip()
-            if not secret_key:
-                return None
-
-        # ── 3. Service Selection ──────────────────────────────────────────────
-        print("\n[3/4] Pilih Services")
+        # ── 2. Service Selection ──────────────────────────────────────────────
+        print("\n[2/3] Pilih Services")
         print("-" * 40)
         _print_service_table(flat_services, default_nos)
 
@@ -214,7 +164,6 @@ def run_interactive_setup() -> dict | None:
         raw = input(f"  Pilihan [{default_str}]: ").strip()
 
         if not raw:
-            # Enter = pakai default
             selected_nos = default_nos
         elif raw.lower() == 'all':
             selected_nos = list(range(1, total + 1))
@@ -230,13 +179,12 @@ def run_interactive_setup() -> dict | None:
                 print("  Input tidak valid, pakai default.")
                 selected_nos = default_nos
 
-        # Tampilkan ulang pilihan yang terpilih
         selected_services = [
             code for (no, _, code) in flat_services if no in selected_nos
         ]
 
-        # ── 4. Konfirmasi ─────────────────────────────────────────────────────
-        print("\n[4/4] Konfirmasi")
+        # ── 3. Konfirmasi ─────────────────────────────────────────────────────
+        print("\n[3/3] Konfirmasi")
         print("-" * 40)
         print(f"  Customer : {customer_name}")
         print(f"  Region   : {region}")
@@ -252,8 +200,6 @@ def run_interactive_setup() -> dict | None:
         return {
             'customer_name':     customer_name,
             'region':            region,
-            'access_key':        access_key,
-            'secret_key':        secret_key,
             'selected_services': selected_services,
         }
 

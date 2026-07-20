@@ -2,45 +2,26 @@ import boto3
 import os
 import json
 from datetime import datetime
-from dotenv import load_dotenv
 from utils.helpers import DecimalEncoder
 
 class AssessmentEngine:
     def __init__(
         self,
-        customer_name: str | None = None,
-        region: str | None = None,
-        access_key: str | None = None,
-        secret_key: str | None = None,
+        customer_name: str = 'AWS Customer',
+        region: str = 'ap-southeast-1',
     ):
         """
         Initialize AWS Assessment.
 
-        Nilai bisa datang dari 2 sumber (prioritas atas ke bawah):
-          1. Parameter eksplisit (dari interactive setup)
-          2. Environment variable / .env file (mode lama)
+        Credentials diambil dari AWS CLI credential chain (environment,
+        ~/.aws/credentials, IAM role, dll). Tidak ada penyimpanan key di .env.
         """
-        load_dotenv()
+        self.region        = region
+        self.customer_name = customer_name
+        self.account_id    = None  # di-set oleh validate_credentials()
 
-        self.access_key    = access_key    or os.getenv('AWS_ACCESS_KEY_ID')
-        self.secret_key    = secret_key    or os.getenv('AWS_SECRET_ACCESS_KEY')
-        self.region        = region        or os.getenv('AWS_REGION', 'ap-southeast-1')
-        self.customer_name = customer_name or os.getenv('CUSTOMER_NAME', 'AWS Customer')
-        self.account_id    = os.getenv('AWS_ACCOUNT_ID')   # akan di-overwrite oleh STS
-
-        # Validate credentials existence
-        if not self.access_key or not self.secret_key:
-            raise ValueError(
-                "AWS credentials tidak ditemukan.\n"
-                "Jalankan tool secara interaktif atau isi .env file."
-            )
-
-        # Initialize boto3 session
-        self.session = boto3.Session(
-            aws_access_key_id=self.access_key,
-            aws_secret_access_key=self.secret_key,
-            region_name=self.region,
-        )
+        # ponytail: ambient credential chain — boto3 resolves from env/config/role
+        self.session = boto3.Session(region_name=self.region)
 
         # Data storage
         self.assessment_data = {
@@ -75,10 +56,11 @@ class AssessmentEngine:
 
     def save_data(self):
         """Save assessment data ke JSON file"""
+        import os
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename = f"output/assessment_data_{timestamp}.json"
-        
-        os.makedirs('output', exist_ok=True)
+        output_dir = os.environ.get("AWS_ASSESS_OUTPUT_DIR", "output")
+        os.makedirs(output_dir, exist_ok=True)
+        filename = f"{output_dir}/assessment_data_{timestamp}.json"
         
         with open(filename, 'w') as f:
             json.dump(self.assessment_data, f, indent=2, cls=DecimalEncoder)
