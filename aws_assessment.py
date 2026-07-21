@@ -12,9 +12,6 @@ from datetime import datetime
 from core.engine import AssessmentEngine
 from core.reporter import generate_html_report
 
-# Import Cost Optimization
-from collectors.cost_optimization import run_cost_optimization
-
 # Import Utils
 from utils.interactive import run_interactive_setup
 
@@ -121,13 +118,10 @@ class AWSAssessment(AssessmentEngine):
                 print(f"  ✗ Error: {str(e)}")
                 results[service_name] = f'error: {str(e)}'
 
-        # 5. Cost optimization analysis
-        run_cost_optimization(self.session, self.assessment_data)
-
-        # 6. Simpan data mentah ke JSON
+        # 5. Simpan data mentah ke JSON
         self.save_data()
 
-        # 7. Run summary
+        # 6. Run summary
         print("\n" + "="*60)
         print("📋 Run Summary")
         print("="*60)

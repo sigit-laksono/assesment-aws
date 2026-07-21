@@ -1,6 +1,6 @@
 # AWS Account Assessment Tool
 
-Tool untuk melakukan assessment komprehensif terhadap akun AWS, menghasilkan laporan inventarisasi, analisis biaya, dan rekomendasi cost optimization. Output berupa HTML report untuk manusia dan JSON untuk AI/automation.
+Tool untuk melakukan assessment komprehensif terhadap akun AWS, menghasilkan laporan inventarisasi dan analisis biaya. Output berupa HTML report untuk manusia dan JSON untuk AI/automation.
 
 ## Screenshot
 
@@ -91,8 +91,7 @@ Butuh PDF? Buka HTML di browser → Print (Ctrl+P) → Save as PDF.
 │   ├── network.py         # VPC, NAT, CloudFront, Route53, NLB
 │   ├── security.py        # KMS, WAF, Secrets Manager, IAM
 │   ├── integration.py     # SNS, MSK, AmazonMQ, Glue, CloudWatch
-│   ├── operations.py      # CloudTrail, Config
-│   └── cost_optimization.py
+│   └── operations.py      # CloudTrail, Config
 ├── core/
 │   ├── engine.py          # Session management + save JSON
 │   └── reporter/          # Generate HTML/PDF report

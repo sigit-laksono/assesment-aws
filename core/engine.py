@@ -2,7 +2,7 @@ import boto3
 import os
 import json
 from datetime import datetime
-from utils.helpers import DecimalEncoder
+from utils.helpers import DecimalEncoder, slugify
 
 class AssessmentEngine:
     def __init__(
@@ -31,7 +31,6 @@ class AssessmentEngine:
             'assessment_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'billing_data':       {},
             'services':           {},
-            'cost_optimization':  {},
         }
 
         print(f"✓ Customer : {self.customer_name}")
@@ -60,7 +59,8 @@ class AssessmentEngine:
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         output_dir = os.environ.get("AWS_ASSESS_OUTPUT_DIR", "output")
         os.makedirs(output_dir, exist_ok=True)
-        filename = f"{output_dir}/assessment_data_{timestamp}.json"
+        customer_slug = slugify(self.customer_name)
+        filename = f"{output_dir}/assessment_data_{customer_slug}_{timestamp}.json"
         
         with open(filename, 'w') as f:
             json.dump(self.assessment_data, f, indent=2, cls=DecimalEncoder)

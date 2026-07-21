@@ -8,7 +8,7 @@ from datetime import datetime
 
 from core.reporter.section_inventory import generate_services_inventory
 from core.reporter.section_summary   import generate_summary_services
-from core.reporter.section_cost      import generate_cost_optimization
+from utils.helpers import slugify
 
 
 def generate_html_report(assessment_data: dict, customer_name: str,
@@ -87,12 +87,12 @@ def generate_html_report(assessment_data: dict, customer_name: str,
     # ── Sections ──────────────────────────────────────────────────────────────
     template = template.replace('{{SUMMARY_SERVICES}}',         generate_summary_services(assessment_data))
     template = template.replace('{{SERVICES_INVENTORY_CONTENT}}', generate_services_inventory(assessment_data))
-    template = template.replace('{{COST_OPTIMIZATION}}',        generate_cost_optimization(assessment_data))
 
     # ── Save ──────────────────────────────────────────────────────────────────
     os.makedirs('output', exist_ok=True)
-    timestamp   = datetime.now().strftime('%Y%m%d_%H%M%S')
-    output_file = f'output/assessment_report_{timestamp}.html'
+    timestamp     = datetime.now().strftime('%Y%m%d_%H%M%S')
+    customer_slug = slugify(customer_name)
+    output_file   = f'output/assessment_report_{customer_slug}_{timestamp}.html'
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write(template)
 

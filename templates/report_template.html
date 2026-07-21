@@ -16,12 +16,18 @@
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="sidebar-header">
-                <h2>AWS Assessment</h2>
+                <h2>AWS</h2>
+                <div class="kicker">Assessment Report</div>
             </div>
             <nav class="nav-menu">
-                <a href="#executive-summary" class="nav-item active">Executive Summary</a>
-                <a href="#cost-optimization" class="nav-item">Cost Optimization</a>
-                <a href="#services-inventory" class="nav-item">Services Inventory</a>
+                <a href="#executive-summary" class="nav-item active">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M18 17V9"></path><path d="M13 17V5"></path><path d="M8 17v-3"></path></svg>
+                    Executive Summary
+                </a>
+                <a href="#services-inventory" class="nav-item">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>
+                    Services Inventory
+                </a>
                 <div id="dynamic-sub-nav" class="sub-nav"></div>
             </nav>
         </div>
@@ -53,7 +59,7 @@
             <div class="content">
                 <!-- Executive Summary -->
                 <div id="executive-summary" class="section">
-                    <h2>Executive Summary</h2>
+                    <h2><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M18 17V9"></path><path d="M13 17V5"></path><path d="M8 17v-3"></path></svg>Executive Summary</h2>
                     <div class="summary-cards">
                         <div class="summary-card">
                             <div class="label">Total Monthly Cost</div>
@@ -101,19 +107,9 @@
                     </div>
                 </div>
 
-                <!-- Cost Optimization -->
-                <div id="cost-optimization" class="section">
-                    <h2>💰 Cost Optimization</h2>
-                    <p style="color: var(--text-muted); margin-bottom: 16px;">
-                        Resource yang tidak digunakan dan berpotensi menghemat biaya.
-                        Estimasi berdasarkan harga on-demand — tinjau sebelum melakukan cleanup.
-                    </p>
-                    {{COST_OPTIMIZATION}}
-                </div>
-
                 <!-- Services Inventory -->
                 <div id="services-inventory" class="section">
-                    <h2>Services Inventory</h2>
+                    <h2><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>Services Inventory</h2>
 
                     <!-- Filter Controls -->
                     <div class="filter-controls">
